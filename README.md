@@ -1,8 +1,8 @@
 # Directory: /Shared/Lib/Bash **or** ~/Lib/Bash
 
-Here are some Bash scripts I developed for NGender partners.
+These are some Bash scripts I developed for NGender partners.
 
-## Profiles
+## Profiles (put these in your home directory)
 
 | Profile Script	| Purpose
 |-----------------------|--------
@@ -15,6 +15,8 @@ Simples/		a system to manage shell extension modules
 
 | Simples Command	| Purpose
 |-----------------------|--------
-| simple_require *module_name*	| loads given module name if not present
-| simple_source *module_name*	| loads given module name unconditionally
+| simple_require *simple*	| loads module *simple* if not present
+| simple_source *simple*	| loads module *simple* unconditionally
 | Simples/Bin/*			| scripts to test simples modules
+
+Note: The word *simple* used to refer to a remedy for a problem.
