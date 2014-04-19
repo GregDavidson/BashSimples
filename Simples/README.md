@@ -1,0 +1,249 @@
+# Directory: ~/Lib/Bash/Simples
+
+Simple mechanisms for better shell scripts.
+
+- Copyright (c) 2008 J. Greg Davidson.
+- This work is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0).
+
+Simples provides a mechanism for adding bundles of
+useful features to interactive and batch shells.
+
+## Simples in this Directory
+
+| Simple		| Description
+|-----------------------|------------
+| simples.bash		| Initializes Simples System
+| delim_lists.bash	| simple lists, sets, maps as delimited lists
+| hash_maps.bash	| Simple associative arrays for a simple shell
+| hello_world.bash	| Says hello!
+| interactive.bash	| Some nice features for interactive shells
+| msg_n_exit.bash	| Framework for printing messages and exiting
+| paths.bash		| Support for environment path variables
+| program.bash		| Framework for Bourne-Shell scripts
+| test_expect.bash	| Test framework for Simples
+
+## Sections of this document:
+
+-	introduction
+-	function naming conventions
+-	simple joining and padding
+-	error reporting and exiting
+-	managing global resource dependencies
+-	shell and environment variable management
+-	simple lists, sets, maps
+-	safely sourcing scripts
+
+##	introduction
+
+The purpose of the simples shell script package is to provide a
+minimal foundation which
+- makes writing good shell scripts easier
+- manages higher-level extension packages
+
+The simples shell script package is particularly helpful in
+compensating for missing or awkward features of older shell languages.
+It may also make it easier to write higher-level scripts which are
+unaffected by which shell dialects may be present in a particular
+environment.
+
+As this script will be unconditionally included in many other scripts
+it needs to be modest and minimal.
+
+One of the key features of the simples package is a mechanism for
+managing loading and dependencies among other packages required by
+application scripts.
+
+Please discourage any tendency for this package to acquire software
+bloat.  More elaborate and/or sophisticated code should go in a
+separate package to be loaded only where needed.
+
+There is sometimes a conflict among the goals of:
+- brevity [ helps for fast load time ]
+- simplicity [ for easy understaning ]
+- flexibilty [ for broader applicability ]
+- speed
+
+Where simples.sh has made the wrong tradeoff for your needs, please
+resolve it at the level of a higher-level package.
+
+Naming conventions (not always followed):
+- functions taking and/or returning values: simple_*
+- functions getting a variable by reference: simple_*var*
+- functions setting a variable by reference: var_simple_*
+- boolean functions: <PREDICATE>_simple_*
+
+Naming convention exceptions (not necessarily complete):
+- simple_get	-- instead of simple_get_var
+- simple_set	-- instead of var_simple_set
+- simple_set_default	-- instead of var_simple_set_default
+- simple_env_default	-- instead of var_simple_env_default
+- simple_hash_*	-- most of these get and set variables by reference
+
+##	simple joining and padding
+
+	simple_char_join char str...
+Joins multiple str... arguments into one string using
+the single char as a delimiter:
+$ simple_char_join : this and that ---> this:and:that
+
+	simple_join delim str...
+Joins multiple str... arguments into one string using
+the first argument as a delimiter:
+$ simple_char_join ' and ' red green blue ---> 'red and green and blue'
+$ simple_char_join ', ' red green blue ---> 'red, green, blue'
+$ simple_char_join '' red green blue ---> 'redgreenblue'
+
+	simple_pad left-padding value right-padding...
+Returns the nothing if the value is empty,
+otherwise returns all arguments concatenated.
+$ simple_pad 'Dear ' 'John' ', ' ---> 'Dear John, '
+$ simple_pad 'Dear ' '' ', ' ---> ''
+$ simple_pad 'Function ' 'foo' 'error' ': ' ---> 'Function foo error: '
+
+##	error reporting and exiting
+
+	simple_ctxt -- Returns the program name and function context (if known)
+$ simple_ctxt ---> my_appliation my_function()
+assuming that the call occurs is inside function "my_function"
+in a script invoked as "my_application".
+Variables: ${pgm_name:-$0}, ${FUNCNAME:-}
+
+	simple_out -- writes its arguments to stdout with a newline
+	simple_out_inline -- writes its arguments to stdout without a newline
+	simple_err -- writes its arguments to stderr with a newline
+	simple_err_inline -- writes its arguments to stderr without a newline
+
+	simple_error MSG...
+Writes MSG... to stderr with a newline, preceded by "`simple_ctext` error: ".
+
+	simple_exit EXIT_CODE MESSAGE...
+Writes MESSAGE... to stderr then exits the program with given EXIT_CODE.
+
+	simple_exitor EXIT_CODE MESSAGE...
+Writes MESSAGE... using simple_err then exits the program with given EXIT_CODE.
+
+##	shell and environment variable management
+
+	is_simple_name STRING ---> BOOLEAN
+Is STRING a valid simple identifier?
+
+	simple_name STRING calling_function context
+Asserts STRING is a simple_name, exiting the program otherwise.
+
+	simple_var_exists VARIABLE_NAME ---> BOOLEAN
+
+	simple_get_var VARIABLE_NAME - prints the value of the named variable
+
+	simple_var_trace VARIABLE_NAME ---> BOOLEAN
+Should this variable be traced by simple_set?
+
+	simple_set VARIABLE_NAME VALUE...
+Sets the value of the named variable to the specified value/list.
+
+	var_simple_cmd COMMAND VARIABLE_NAME ARGS...
+Sets the value of the named variable to the
+result of evaluating the specified command.
+
+	simple_set_default VARIABLE_NAME VALUE...
+Sets the value of the named variable to the specified value/list.
+
+	simple_env_default VARIABLE_NAME DEFAULT_VALUE...
+Sets the value of the named environment variable to the specified value/list.
+
+##	simple lists, sets, maps
+
+Here we provide some essential data structures either using the
+shell's provided array and/or hash mechanisms or "faking it" with
+delimited strings and/or multiple global variables.
+
+In case we have to use the delimited strings mechanism, a delimiter
+must be provided for some of the list and set functions.  The delmiter
+should not contain any shell metacharacters other than whitespace.  If
+the delimiter is other than a single character, the list or set values
+must not contain any regexp metacharacters.
+
+In case we have to use the "multiple global variables" mechanism, any
+hash keys must consist of characters which are legal in shell variable
+names.
+
+	is_simple_meta_free STRING
+Checks if the STRING is free of problematic regexp metacharacters.
+Used for error checking.  Warning: This function may produce both
+false positives and false negatives!
+
+The following functions take list or set values and return new list or
+set values:
+
+	in_simple_delim_list DELIMITER LIST ITEM  -- flexible algorithm
+	ni_simple_delim_list DELIMITER LIST ITEM  -- not in
+	in_simple_char_delim_list DELIMITER LIST ITEM -- DELIMITER is 1 character
+	in_simple_str_delim_list DELIMITER LIST ITEM -- general algorithm
+
+	simple_delim_list_prepend DELIMITER LIST ITEM
+	simple_delim_list_append DELIMITER LIST ITEM
+
+	simple_delim_set_prepend DELIMITER SET ITEM
+	simple_delim_set_append DELIMITER SET ITEM
+
+The following functions take list or set variable names and modify
+their values as needed:
+
+	simple_delim_var DELIMITER VAR [ITEM]
+Creates VAR as a list or set variable, using provided DELIMITER,
+initially containing ITEM or nothing.
+
+	in_simple_listvar VAR ITEM -- ITEM in VAR?
+	ni_simple_listvar VAR ITEM -- ITEM not in VAR?
+
+	var_simple_listvar_prepend VAR ITEM -- ITEM added to front of VAR
+	var_simple_listvar_append VAR ITEM -- ITEM added to back of VAR
+
+	var_simple_setvar_prepend VAR ITEM -- ITEM added to front of VAR if not in
+	var_simple_setvar_append VAR ITEM -- ITEM added to back of VAR if not in
+
+The following functions create a very simple hash aka associative array,
+possibly implementing them with multiple global variables.  When multiple
+keys are provided they act like nested arrays:
+
+	simple_hash_exists HASHVAR KEY... -- does a hash of HASHVAR(KEY)... exist?
+
+	simple_hash_var HASHVAR [KEY...] -- create HASHVAR(KEY)... as a hash variable
+Omit the last key - unless using nested keys, provide no keys.
+
+	simple_hash_get HASHVAR KEY... -- return value of HASHVAR(KEY)...
+	var_simple_hash_get VAR HASHVAR KEY... -- set VAR to value of HASHVAR(KEY)...
+
+	simple_hash_set VALUE HASHVAR KEY... -- set HASHVAR(KEY)... to VALUE
+## warning: argument order inconsistent with simple_set!
+
+##	managing global resource dependencies
+
+Resource management can either use list sets or hash sets
+
+simple_provided_list required, even if using hash sets:
+$ simple_delim_var '/' simple_provided_list 'simples'
+
+	simple_provide NAME -- register the global availability of resource NAME
+	simple_provided NAME -- is NAME provided?
+
+##	safely sourcing scripts
+
+$ simple_source_suffix='.sh'
+$ simple_delim_var ' ' simple_load_extensions 'sh'
+$ simple_delim_var ':' simple_source_path "$HOME/Lib/Sh"
+
+	simple_source SIMPLE_FILENAME...
+Does a simple_load on each SIMPLE_FILENAME.  It is an error if any of
+the loads fail.
+
+	simple_load SIMPLE_FILENAME
+Sources (i.e. includes, consults, performs the commands of) the script
+file with indicated simple name (the extension $simple_source_suffix
+will be added) provided that it exists in one of the allowed
+directories listed in simple_source_path.
+
+	simple_require SIMPLE_FILENAME..
+Sources one or more files in the manner of simple_source above
+but only if they have not yet been sourced by this process.
+The SIMPLE_FILENAMEs are treated as global resource names as
+well as script filenames, so make sure there is no name conflict!
