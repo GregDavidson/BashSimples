@@ -11,9 +11,10 @@ ifsrc ~/.profile
 
 # Set up my "Simples" modular library system
 ifsrc "$HOME/Lib/Bash/Simples/simples.bash"
+# if that worked, let's add some program directories
 is_cmd simple_require && {
 	simple_require paths
-	path_add -a ~/SW/*/[Bb]in ~/Shared/Bin
+	path_add -a ~/SW/*/[Bb]in{,.`arch`} ~/Shared/Bin
 }
 
 # If we're interactive, bring in interactive features
