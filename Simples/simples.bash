@@ -69,13 +69,14 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 ## functions can be messed up by aliases of the same name
 
 simple_unalias() { for f; do unalias $f; done 2> /dev/null; }
+export -f simple_unalias
 
 simple_unalias simple_out  simple_out_inline  simple_msg  simple_msg_inline
 
-simple_out() { echo -E "$@"; }
-simple_out_inline() { echo -En "$@"; }
-simple_msg() { >&2 echo -E "$@"; }
-simple_msg_inline() { >&2 echo -En "$@"; }
+simple_out() { printf "%s\n" "$@"; } # { echo -E "$@"; }
+simple_out_inline() { printf "%s" "$@"; } # { echo -En "$@"; }
+simple_msg() { >&2 printf "%s\n" "$@"; } # { >&2 echo -E "$@"; }
+simple_msg_inline() { >&2 printf "%s" "$@"; } # { >&2 echo -En "$@"; }
 
 # aliases are faster because they're inline expanded
 
