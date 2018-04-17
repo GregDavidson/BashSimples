@@ -16,10 +16,10 @@ function usage { stderr "Usage: $*"; }
 
 function lsd { ps ax | awk '$2=="?"{print $5}' | tr -d '[]' | sort -u | fmt; }
 
-[[ -n "$(type -p less)" ]] && alias more='less'
+type -p less >/dev/null && alias more='less'
 
 for program in gvim vim v; do
-    [[ -n "$(type -p "$program")" ]] && alias v="$program" && break
+    type -p "$program" >/dev/null && alias v="$program" && break
 done
 
 function l {
@@ -135,7 +135,7 @@ zero() {
 alias h=history
 
 # Help those in recovery
-try() { echo Try: "$@"; }
+function try { echo Try: "$@"; }
 alias cls='try clear'
 alias del='try rm'
 alias delete=del
@@ -162,5 +162,6 @@ if [ yes = "$UsingLinux" ]; then
 fi
 alias mv="mv $mv_cp_opt"
 alias cp="cp $mv_cp_opt"
+alias ls='ls -B --color=auto'
 
 orig() { for f ; do mv $f ${f}.orig && cp ${f}.orig $f ; done ; }
