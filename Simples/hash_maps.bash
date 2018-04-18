@@ -13,7 +13,6 @@
 # Let's let application pressure drive this!
 
 _hash_join() { simple_join '_' "$@"; }
-alias _hash_join="simple_join '_'"
 
 hash_exists() { simple_var_exists `_hash_join "$@"`; }
 
@@ -29,7 +28,6 @@ hash_define() {
 # hash_get name key...
 hash_get() { simple_get "`_hash_join $*`"; }
 var_hash_get() { simple_cmd_setvar_args hash_get "$@"; }
-alias var_hash_get='simple_cmd_setvar_args hash_get'
 
 # hash_set value name key...
 # warning: argument order inconsistent with simple_set!

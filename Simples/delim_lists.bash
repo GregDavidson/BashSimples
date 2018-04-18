@@ -27,20 +27,9 @@ _var_delim_list_cmd() {        # COMMAND LISTVAR ARGS...
     simple_set "$2" "`_delim_list_cmd \"$@\"`"
 }
 
-simple_unalias in_delim_listvar ni_delim_listvar \
-	delim_listvar_prepend delim_listvar_append \
-	delim_setvar_prepend delim_setvar_append
-
 in_delim_listvar() { _delim_list_cmd in_simple_delim_list "$@"; }
 ni_delim_listvar() { _delim_list_cmd ni_simple_delim_list "$@"; }
 delim_listvar_prepend() { _var_delim_list_cmd simple_delim_list_prepend "$@"; }
 delim_listvar_append() { _var_delim_list_cmd simple_delim_list_append "$@"; }
 delim_setvar_prepend() { _var_delim_list_cmd simple_delim_set_prepend "$@"; }
 delim_setvar_append() { _var_delim_list_cmd simple_delim_set_append "$@"; }
-
-alias in_delim_listvar='_delim_list_cmd in_simple_delim_list'
-alias ni_delim_listvar='_delim_list_cmd ni_simple_delim_list'
-alias delim_listvar_prepend='_var_delim_list_cmd simple_delim_list_prepend'
-alias delim_listvar_append='_var_delim_list_cmd simple_delim_list_append'
-alias delim_setvar_prepend='_var_delim_list_cmd simple_delim_set_prepend'
-alias delim_setvar_append='_var_delim_list_cmd simple_delim_set_append'

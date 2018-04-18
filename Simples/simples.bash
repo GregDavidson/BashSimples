@@ -57,7 +57,6 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	${array_name[index]} and ${array_name[*]}
 #	typeset -r -i -- aka declare in bash
 #	local -r -i -- aka typeset in ksh
-#	alias
 
 # Customized for Bash using:
 #	${!var}	instead of `simple_get "$var"`
