@@ -82,6 +82,8 @@ path_add() { pathvar_add PATH -d. "$@" ; }
 manpath_add() { pathvar_add MANPATH -d. "$@" ; }
 libpath_add() { pathvar_add LD_LIBRARY_PATH -d. "$@" ; }
 
+export -f pathvar_add path_add manpath_add libpath_add
+
 # make viewing paths easier
 
 pathvar_show_() { echo "${!1}" | tr : '\012' | sed "s:^$HOME:\~:"; }
@@ -98,6 +100,7 @@ path_show() { pathvar_show PATH; }
 manpath_show() { pathvar_show MANPATH; }
 libpath_show() { pathvar_show LD_LIBRARY_PATH; }
 
+export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
 # WISHLIST
 
