@@ -13,8 +13,10 @@
 # Let's let application pressure drive this!
 
 _hash_join() { simple_join '_' "$@"; }
+export -f _hash_join
 
 hash_exists() { simple_var_exists `_hash_join "$@"`; }
+export -f hash_exists
 
 # I don't think this is needed - jgd
 hash_define() {
@@ -24,10 +26,12 @@ hash_define() {
   esac
   hash_set "$@"
 }
+export -f hash_define
 
 # hash_get name key...
 hash_get() { simple_get "`_hash_join $*`"; }
 var_hash_get() { simple_cmd_setvar_args hash_get "$@"; }
+export -f hash_get var_hash_get
 
 # hash_set value name key...
 # warning: argument order inconsistent with simple_set!
@@ -35,3 +39,4 @@ hash_set() {
  local -r value="$1" ; shift
  simple_set "`_hash_join $*`" "$value"
 }
+export -f hash_set

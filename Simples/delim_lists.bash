@@ -14,6 +14,7 @@ delim_var() {	# DELIMITER VAR [ITEM]
     simple_set "${2}__delim" "$1"
     simple_set "$2" "${3-}"
 }
+export -f delim_var
 
 _delim_list_cmd() {	# COMMAND LISTVAR ARGS...
     local -r v="{$2}__delim"
@@ -22,10 +23,12 @@ _delim_list_cmd() {	# COMMAND LISTVAR ARGS...
     esac
     "$1" "${!v}" "${!2}" "${@:3}"
 }
+export -f _delim_list_cmd
 
 _var_delim_list_cmd() {        # COMMAND LISTVAR ARGS...
     simple_set "$2" "`_delim_list_cmd \"$@\"`"
 }
+export -f _var_delim_list_cmd
 
 in_delim_listvar() { _delim_list_cmd in_simple_delim_list "$@"; }
 ni_delim_listvar() { _delim_list_cmd ni_simple_delim_list "$@"; }
@@ -33,3 +36,7 @@ delim_listvar_prepend() { _var_delim_list_cmd simple_delim_list_prepend "$@"; }
 delim_listvar_append() { _var_delim_list_cmd simple_delim_list_append "$@"; }
 delim_setvar_prepend() { _var_delim_list_cmd simple_delim_set_prepend "$@"; }
 delim_setvar_append() { _var_delim_list_cmd simple_delim_set_append "$@"; }
+export -f in_delim_listvar ni_delim_listvar
+export -f delim_listvar_prepend delim_listvar_append
+export -f delim_setvar_prepend delim_setvar_append
+
