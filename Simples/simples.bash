@@ -62,28 +62,20 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # Customized for Bash using:
 #	${!var}	instead of `simple_get "$var"`
 
+# Which are faster in a modern Bash?
+# - aliases or functions
+# - echo or printf
+
+# Sometimes defining a function with postfix ()
+# gets a syntax error and using the function keyword
+# fixes it!
+
 ##	simple output
-
-# sometimes you need a function
-
-## functions can be messed up by aliases of the same name
-
-simple_unalias() { for f; do unalias $f; done 2> /dev/null; }
-export -f simple_unalias
-
-simple_unalias simple_out  simple_out_inline  simple_msg  simple_msg_inline
 
 simple_out() { printf "%s\n" "$@"; } # { echo -E "$@"; }
 simple_out_inline() { printf "%s" "$@"; } # { echo -En "$@"; }
 simple_msg() { >&2 printf "%s\n" "$@"; } # { >&2 echo -E "$@"; }
 simple_msg_inline() { >&2 printf "%s" "$@"; } # { >&2 echo -En "$@"; }
-
-# aliases are faster because they're inline expanded
-
-alias simple_out='echo -E'
-alias simple_out_inline='echo -En'
-alias simple_msg='>&2 echo -E'
-alias simple_msg_inline='>&2 echo -En'
 
 ##	join, pad, preargs
 
@@ -137,9 +129,7 @@ simple_error_msg() {
     return 1
 }
 
-simple_unalias simple_error
 simple_error() { >&2 simple_error_msg "$@"; }
-alias simple_error='>&2 simple_error_msg'
 
 simple_exit() { simple_msg "${@:2}"; exit $1; }
 simple_exitor() { simple_error "${@:2}"; exit $1; }
@@ -179,9 +169,7 @@ assert_simple_re_not() { (( `expr "X${2}" : "X$1"` )) && simple_exitor "${@:3}";
 simple_re_cut() { expr "$2" : "${1}\$" ; }
 
 simple_trim_re='[[:space:]]*\(.*[^[:space:]]\)[[:space:]]*'
-simple_unalias simple_trim
 simple_trim() { simple_re_cut "$simple_trim_re" "$@" ; }
-alias simple_trim='simple_re_cut "$simple_trim_re"'
 
 ##	shell and environment variable management
 
@@ -310,16 +298,12 @@ simple_provide() {
  in_simple_delim_list ' ' "$simples_provided" "$1" ||
    simples_provided="$simples_provided $1"
 }
-simple_unalias simple_provided
 simple_provided() { in_simple_delim_list ' ' "$simples_provided" "$1"; }
-alias simple_provided='in_simple_delim_list " " "$simples_provided"'
 
 ##	safely sourcing scripts
 
 #simple_array ARRAY_NAME [ value... ]
-#simple_unalias simple_array
 #simple_array() { set -A "$@"; }	# ksh-specific code!!!
-#alias simple_array='set -A'	# ksh-specific code!!!
 
 simple_array() {		# ARRAY_NAME [ value... ]
     local -r vals=( "${@:2}" )
