@@ -24,6 +24,10 @@ test_main "$script_to_test" "${simples_bash:-$HOME/Lib/Bash/Simples}" "${@}"
 
 ##	join, pad, trim, preargs
 
+test_output 'a beta *' simple_join1 ' ' a beta '*'
+test_output 'a:beta:*' simple_join1 ':' a beta '*'
+test_output 'abeta*' simple_join1 '' a beta '*'
+
 test_output 'a beta *' simple_join ' ' a beta '*'
 test_output 'a:beta:*' simple_join ':' a beta '*'
 test_output 'abeta*' simple_join '' a beta '*'
@@ -63,13 +67,13 @@ test_output 'foo bar' simple_out_inline foo bar
 [ `simple_out foo bar | wc -c` -eq 8 ] && test_ok ||
 	test_failed simple_out
 [ -n `'simple_msg' foo bar 2>/dev/null` ] && test_ok ||
-	test_failed simple_msg
+	test_failed simple_msg 1
 [ -n `'simple_msg_inline' foo bar 2>/dev/null` ] && test_ok ||
-	test_failed simple_msg
+	test_failed simple_msg_inline 1
 [ `'simple_msg' foo bar 2>&1 | wc -c` -eq 8 ] && test_ok ||
-	test_failed simple_msg
+	test_failed simple_msg 2
 [ `'simple_msg_inline' foo bar 2>&1 | wc -c` -eq 7 ] && test_ok ||
-	test_failed simple_msg_inline
+	test_failed simple_msg_inline 2
 
 # test_expect_debug=true
 test_output "$0 error" simple_error_msg
