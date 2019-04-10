@@ -69,10 +69,10 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 ##	simple output
 
-simple_out() { printf "%s\n" "$@"; } # { echo -E "$@"; }
-simple_out_inline() { printf "%s" "$@"; } # { echo -En "$@"; }
-simple_msg() { >&2 printf "%s\n" "$@"; } # { >&2 echo -E "$@"; }
-simple_msg_inline() { >&2 printf "%s" "$@"; } # { >&2 echo -En "$@"; }
+simple_out() { printf "%s\n" "$*"; } # { echo -E "$@"; }
+simple_out_inline() { printf "%s" "$*"; } # { echo -En "$@"; }
+simple_msg() { >&2 printf "%s\n" "$*"; } # { >&2 echo -E "$@"; }
+simple_msg_inline() { >&2 printf "%s" "$*"; } # { >&2 echo -En "$@"; }
 
 ##	join, pad, preargs
 
