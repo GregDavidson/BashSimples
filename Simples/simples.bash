@@ -13,7 +13,6 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # shopt -s nullglobshopt -s nullglob
 # shopt -u nullglobshopt -u nullglob
 
-
 ##	Table of Contents
 
 #	Table of Contents
@@ -29,8 +28,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 ##	Introduction
 
-# This is a port of the simples package developed for the Bourne Shell,
-# This port should run properly under Bash.
+# This is a Bash port of the simples package developed for the Bourne Shell,
 # Any places where code here will not run under (pd)ksh should be documented!
 
 # The purpose of this port is to improve efficiency of this fundamental
@@ -78,21 +76,35 @@ simple_msg_inline() { >&2 printf "%s" "$@"; } # { >&2 echo -En "$@"; }
 
 ##	join, pad, preargs
 
+# simple_join1 DELIMTER [WORD...]
+# DELIMITER must be a single character or an empty string
+simple_join1() {
+    local IFS="$1" ; shift
+    simple_out "$*"
+}
+
 # simple_join DELIMITER [WORD...]
 simple_join() {
-    local -r delim="$1" ; shift
-    (( $# )) || return
-    local accum="$1" ; shift
-    local word ; for word; do
-      accum="${accum}${delim}${word}"
-    done
-    simple_out_inline "$accum"
+    case $# in
+			0) return ;;
+			1) return ;;
+			2) echo -n "$2";;
+			3) echo -n "$2$1$3";;
+			4) echo -n "$2$1$3$1$4";;
+			*) local -r d="$1" ; shift
+				 local accum="$1" ; shift
+				 local word
+				 for word; do
+					 accum="${accum}${d}${word}"
+				 done
+				 simple_out_inline "$accum" ;;
+		esac
 }
 
 # simple_pad left-padding value right-padding...
 simple_pad() {
     case "$2" in
-        (?*) simple_join '' "$@" ;;
+        (?*) simple_join1 '' "$@" ;;
     esac
 }
 
@@ -163,7 +175,7 @@ assert_simple_re() {  (( ! `expr "X${2}" : "X$1"` )) && simple_exitor "${@:3}"; 
 assert_simple_re_not() { (( `expr "X${2}" : "X$1"` )) && simple_exitor "${@:3}"; }
 
 # simple_re_cut REGULAR_EXPRESSION VALUE
-# RE must one tagged subexpression, e.g. the \(.*\) in $simple_trim_re.
+# RE must have one tagged subexpression, e.g. the \(.*\) in $simple_trim_re.
 # The tagged part of the subexpression will be returned.
 simple_re_cut() { expr "$2" : "${1}\$" ; }
 
@@ -173,18 +185,17 @@ simple_trim() { simple_re_cut "$simple_trim_re" "$@" ; }
 ##	shell and environment variable management
 
 # simple_var_exists VARIABLE_NAME -- returns true or false
-simple_var_exists() {
-#   assert_simple_re "$simple_name_re" "$1" 1 simple_var_exists -- "$@"
-    eval [ -n \"\${${1}+yes}\" ]
-}
+simple_var_exists() { [[ -v "$1" ]]; } # bash >= 4.2
 
 # simple_get VARIABLE_NAME - prints the value of the named variable
 simple_get() {
-    echo -En "${!1-}"
+    simple_out "${!1-}"
 }
 
 # simple_var_trace VARIABLE_NAME -- should this variable be traced
 # Redefine this function as needed
+# This is clumsy!!!
+# How about using an associative array instead???
 simple_var_trace() {
     case $1 in
         (foo_*) return 0;;
@@ -195,12 +206,11 @@ simple_var_trace() {
 # simple_set VARIABLE_NAME VALUE...
 # sets the value of the named variable to the specified value/list
 simple_set() {
-#    assert_simple_re "$simple_name_re" "$1" 1 simple_set -- "$@"
-    local -r name="${1}" ; shift
-    simple_var_trace "$name" &&
+	local -n var="$1"
+  local -r name="$1" ; shift
+  simple_var_trace "$name" &&
     simple_msg "${pgm_name:-$0} trace: ${name}='${*}'"
-#    eval "${name}='${*}'"
-    eval "${name}=\$*"
+  var="$*"
 }
 
 # simple_cmd_setvar_args: setvar  =  cmd args...
@@ -235,52 +245,52 @@ simple_env_default() {
 
 # in_simple_delim_list DELIMITER LIST ITEM
 in_simple_delim_list() {
-    case "$1$2$1" in
-	(*"$1$3$1"*) return 0;;
-	(*) return 1;;
-    esac
+  case "$1$2$1" in
+		(*"$1$3$1"*) return 0;;
+		(*) return 1;;
+  esac
 }
 
 # ni_simple_delim_list DELIMITER LIST ITEM
 ni_simple_delim_list() {
-    case "$1$2$1" in
-	(*"$1$3$1"*) return 1;;
-	(*) return 0;;
-    esac
+  case "$1$2$1" in
+		(*"$1$3$1"*) return 1;;
+		(*) return 0;;
+  esac
 }
 
 #simple_delim_list_prepend DELIMITER LIST ITEM
 simple_delim_list_prepend() {
-    case "$2" in
-        ('') echo -n "$3" ;;
-        (*) echo -n "$3$1$2" ;;
-    esac
+  case "$2" in
+    ('') simple_out "$3" ;;
+    (*) simple_out "$3$1$2" ;;
+  esac
 }
 
 #simple_delim_list_append DELIMITER LIST ITEM
 simple_delim_list_append() {
-    case "$2" in
-        ('') echo -n "$3" ;;
-        (*) echo -n "$2$1$3" ;;
-    esac
+  case "$2" in
+    ('') echo -n "$3" ;;
+    (*) echo -n "$2$1$3" ;;
+  esac
 }
 
 #simple_delim_set_prepend DELIMITER LIST ITEM
 simple_delim_set_prepend() {
-    case "$1$2$1" in
-	(*"$1$3$1"*) echo -n "$2" ;;
-        ("$1$1") echo -n "$3" ;;
-        (*) echo -n "$3$1$2" ;;
-    esac
+  case "$1$2$1" in
+		(*"$1$3$1"*) echo -n "$2" ;;
+    ("$1$1") echo -n "$3" ;;
+    (*) echo -n "$3$1$2" ;;
+  esac
 }
 
 #simple_delim_set_append DELIMITER LIST ITEM
 simple_delim_set_append() {
-    case "$1$2$1" in
-	(*"$1$3$1"*) echo -n "$2" ;;
-        ("$1$1") echo -n "$3" ;;
-        (*) echo -n "$2$1$3" ;;
-    esac
+  case "$1$2$1" in
+		(*"$1$3$1"*) echo -n "$2" ;;
+    ("$1$1") echo -n "$3" ;;
+    (*) echo -n "$2$1$3" ;;
+  esac
 }
 
 ##	managing global resource dependencies
@@ -303,10 +313,9 @@ simple_provided() { in_simple_delim_list ' ' "$simples_provided" "$1"; }
 
 #simple_array ARRAY_NAME [ value... ]
 #simple_array() { set -A "$@"; }	# ksh-specific code!!!
-
 simple_array() {		# ARRAY_NAME [ value... ]
-    local -r vals=( "${@:2}" )
-    eval "$1=(\"\${vals[@]}\")"
+	local -n var="$1"
+  var=("${@:2}")
 }
 
 # Anyone who wants to extend theses lists should
@@ -319,56 +328,58 @@ simples_bash_path="$HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples"
 # returns the filename, if any, which corresponds to the argument
 # with an allowed suffix in one of the allowed directories.
 simple_source_file() {
-    match_simple_re "$simple_name_re" "$1" || {
-        simple_error simple_source_file -- "improper source $1"
-	return 1
-    }
-    local d s
-    for d in $simples_bash_path; do
-	for s in $simples_bash_suffixes; do
+  match_simple_re "$simple_name_re" "$1" || {
+    simple_error simple_source_file -- "improper source $1"
+		return 1
+  }
+  local d s
+  for d in $simples_bash_path; do
+		for s in $simples_bash_suffixes; do
 	    [[ -r "$d/$1$s" ]] && echo "$d/$1$s" && return 0
-	done
-    done
-    simple_error simple_source_file -- "no source $1"
-    return 1
+		done
+  done
+  simple_error simple_source_file -- "no source $1"
+  return 1
 }
 
 # simple_source SIMPLE_FILENAME...
 # sources (i.e. includes, consults, performs the commands of)
 # the script file corresponding to each SIMPLE_FILENAME
 simple_source() {
-    local return=0     # any error will change this!
-    local f file; for f in "$@"; do
-	file=`simple_source_file "$f"` || return=1
-    done
-    (( $return )) && return $return
-    for f in "$@"; do
-	. `simple_source_file "$f"`
-	[[ $? -eq 0 ]] || {
+  local return=0     # any error will change this!
+  local f file
+	for f in "$@"; do
+		file=`simple_source_file "$f"` || return=1
+	done
+  (( $return )) && return $return
+  for f in "$@"; do
+		. `simple_source_file "$f"`
+		[[ $? -eq 0 ]] || {
 	    return=$?
 	    simple_error simple_source -- "sourcing $f failed; aborting"
 	    return $return
-	}
-	simple_provide "$f"
-    done
+		}
+		simple_provide "$f"
+  done
 }
 
 # simple_require SIMPLE_FILENAME..
 # sources one or more files in the manner of simple_source above
 # but only if they have not yet been sourced by this process.
 simple_require() {
-    local return item ; for item; do
-	in_simple_delim_list ' ' "$simples_provided" "$item" && continue
-	simple_source "$item"
-	[[ $? -eq 0 ]] || {
+  local return item
+	for item; do
+		in_simple_delim_list ' ' "$simples_provided" "$item" && continue
+		simple_source "$item"
+		[[ $? -eq 0 ]] || {
 	    return=$?
 	    simple_error simple_require -- "requirement $item not met; aborting"
 	    return $return
-	}
-    done
+		}
+  done
 }
 
 # WISHLIST
 
-# # bash 4.0
+# # bash 4.2
 ## make any simplifications possible
