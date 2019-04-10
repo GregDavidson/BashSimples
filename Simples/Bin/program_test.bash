@@ -6,7 +6,7 @@ program_test_header='$Header: /Home/greg/Lib/Bash/Bin/RCS/program_test.bash,v 1.
 # Creative Commons Attribution 4.0 International License
 # http://creativecommons.org/licenses/by/4.0.
 
-. "${simples_bash:-$HOME/Lib/Bash/simples.bash}" ||
+. "${simples_bash:-$HOME/Lib/Bash/Simples/simples.bash}" ||
   ( >&2 echo "$0: Cannot source simples package!" ; exit 1 )
 
 simple_require test_expect
@@ -18,7 +18,7 @@ test_var PATH '/bin:/usr/bin'
 
 for v in pgm_helper_bin program_format_notes program_format_table; do
     test_success simple_var_exists $v
-    test_success test -x "`simple_get $v`"
+    test_success test -x $(type -p $(simple_get $v))
 done
 
 ##	declarative program self-description
