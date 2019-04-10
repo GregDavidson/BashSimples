@@ -22,8 +22,8 @@ msg_exit_format fire	3 'User %s is on fire!\n'
 msg_format extra_args	'%14s\t%s\n'
 msg_format extra_arg	'%14d\t%s\n'
 
-program_flag	f	friendly	true	false	establish friendly
-program_option	h	heat	low	set level of heat
+program_flag	f	friendly	false true	establish friendly
+program_option	h	heat	low	set level of heat '(low high)'
 program_arg		user			the poor sucker
 
 program_note I hope you understand and appreciate the nice things \
@@ -38,6 +38,8 @@ program_note  None of these things are really hard to do, \
 	we just will not bother, or worse, we will do them in a slapdash fashion.
 
 program_note This is also an example of a declarative interface.
+
+program_note Try setting the heat to high.
 
 program_process_options "$@" ; shift $program_option_count
 
