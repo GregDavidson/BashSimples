@@ -1,28 +1,25 @@
-# Sample .profile for SuSE Linux
-# rewritten by Christian Steinruecken <cstein@suse.de>
-#
-# This file is read each time a login shell is started.
-# All other interactive shells will only read .bashrc; this is particularly
-# important for language settings, see below.
+# Simple login profile for Bourne-Shell compatible shells
 
-test -z "$PROFILEREAD" && . /etc/profile
-
-# Most applications support several languages for their output.
-# To make use of this feature, simply uncomment one of the lines below or
-# add your own one (see /usr/share/locale/locale.alias for more codes)
-#
-#export LANG=de_DE.UTF-8	# uncomment this line for German output
-#export LANG=fr_FR.UTF-8	# uncomment this line for French output
-#export LANG=es_ES.UTF-8	# uncomment this line for Spanish output
-
+# ifsrc will source a file if it exists
 ifsrc() { [ -f "$1" -a -r "$1" ] && . "$1"; }
+
+# unless PROFILEREAD is defined, source the system profile
+test -n "$PROFILEREAD" || ifsrc /etc/profile
+
+# Unless we're a child of a super account,
+# define this account as the super account.
 [ -n "$super" ] || export super="$HOME"
 
 ifsrc "$super/.env.sh"		# Set up the environment
 
+# Perform routine login-time updates
 for doit in "$HOME/This/update-this"; do
 	[ -x "$doit" ] && "$doit"
 done
 
+# If login is sharing an X screen with an already logged-in
+# account which has given us DISPLAY credentials, unpack
+# them.  This only works if used in conjuction with, e.g.
+# configuration of the su or sudo commands to set and
+# propagate XAUTH_ADD appropriately in subshells.
 [ -n "$XAUTH_ADD" ] && { xauth add "$DISPLAY" "${XAUTH_ADD#* }"; export XAUTH_ADD= ; }
-
