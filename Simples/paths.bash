@@ -11,7 +11,7 @@
 
 # Requires simples package.
 
-pathvar_add='pathvar_add VAR [-az] [-efdW] [-D delim] [-E] item...'
+pathvar_add_usage='pathvar_add VAR [-az] [-efdW] [-D delim] [-E] item...'
 pathvar_add_options='
 	-a		-- add at the beginning
 	-z		-- add at the end (the default)
@@ -25,14 +25,18 @@ pathvar_add_options='
 '
 pathvar_add_purpose='add new components to a PATH-like variable'
 pathvar_add_version='$Id$'
+# BUG: if something doesn't exist, it will trigger warnings
+# and elisions on subsequent valid items!!!
+# 10:02 p.m., Sunday, 5 December 2021 -jgd
 function pathvar_add {
     # process any help options
-    local arg ; for arg; do
-      case "$arg" in
-        --version) echo "Version: $pathvar_add_version"; return 0 ;;
-        --usage) echo "Usage: $pathvar_add_usage"; return 0 ;;
-        --help) echo -n "$pathvar_add_usage$pathvar_add_options"; return 0 ;;
-      esac
+    local arg
+    for arg; do
+        case "$arg" in
+            --version) echo "Version: $pathvar_add_version"; return 0 ;;
+            --usage) echo "Usage: $pathvar_add_usage"; return 0 ;;
+            --help) echo -n "$pathvar_add_usage$pathvar_add_options"; return 0 ;;
+        esac
     done
     # fetch the path variable and its current value (if any)
     if ! match_simple_re "$simple_name_re" "$1"; then
@@ -42,14 +46,14 @@ function pathvar_add {
     # process any options
     local delim=':' append=1 fix_dot=0 tests='' warn=0 export=1
     OPTIND=0 ; while getopts ":az.efdWD:E" myopt;  do 
-	case "$myopt" in
-		a)	append=0	;;		z)	append=1	;;
-	    [def])	tests+=" $myopt" ;;
-		E)	export=0	;;		W)	warn=1		;;
-		.)	fix_dot=1	;;		D)	delim=OPTARG	;;
-	      '?')	>&2 echo "Usage: $pathvar_add_usage" ; return 1 ;;
-	esac    
-    done ; shift $(( $OPTIND - 1 ))
+                   case "$myopt" in
+                       [def])	tests+=" $myopt" ;;
+                       a)	append=0	;;		z)	append=1	;;
+                       E)	export=0	;;		W)	warn=1		;;
+                       .)	fix_dot=1	;;		D)	delim=OPTARG	;;
+                       '?')	>&2 echo "Usage: $pathvar_add_usage" ; return 1 ;;
+                   esac    
+               done ; shift $(( $OPTIND - 1 ))
     # process the items to add
     local item item_test item_ok=1
     for item; do
@@ -72,7 +76,7 @@ function pathvar_add {
         val="${val/#$delim.$delim/}" # delete any initial .
         val="${val//$delim.$delim/$delim}" # delete any intermediate .'s
         in_simple_delim_list "$delim" "$val" '.' ||
-        val="$val$delim."
+            val="$val$delim."
     fi
     simple_set "$var" "$val"
     (( $export )) && export "$var"
