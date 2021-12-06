@@ -99,11 +99,12 @@ else
   pr=pr
 fi
 path1() {
-  case $# in
-    1) path_list $1 | fmt ;;
-    2) path_list $1 | $pr -$2 -t ;;
-    *) usage "path1 path_var [ columns ]" ;;
-  esac
+    local cols=${3:-${COLUMNS:-80}}
+    case $# in
+        1) path_list $1 | fmt ;;
+        2) path_list $1 | $pr -$2 -t -w"$cols";;
+        *) usage "path1 path_var [ columns ]" ;;
+    esac
 }
 path() {
   case $# in
