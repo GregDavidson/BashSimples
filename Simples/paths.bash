@@ -106,10 +106,12 @@ libpath_show() { pathvar_show LD_LIBRARY_PATH; }
 
 export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
+# merge with the simples.bash equivalent???
 join_by() {
     local IFS="$1"; shift
     echo "$*"
 }
+export -f join_by
 
 # pathvar_dedup path-variable
 # deduplicate :-separated path
@@ -119,18 +121,11 @@ pathvar_dedup() {
     local -a input
     local -a output
     local -A count
-#   echo -n "path count: "
-#   echo "$path" | tr : '\n' | wc -l
     IFS=':' read -a input <<< "$path"
-#   echo "input count: ${#input[@]}"
-#   declare -p input
     for x in "${input[@]}"; do (( count["$x"]++ )) || output+=("$x"); done
-#   echo "count count: ${#count[@]}"
-#   declare -p count
-#   declare -p output
     path=$(join_by : "${output[@]}")
 }
-
+export -f pathvar_dedup
 
 # WISHLIST
 
