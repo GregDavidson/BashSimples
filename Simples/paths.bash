@@ -106,6 +106,32 @@ libpath_show() { pathvar_show LD_LIBRARY_PATH; }
 
 export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
+join_by() {
+    local IFS="$1"; shift
+    echo "$*"
+}
+
+# pathvar_dedup path-variable
+# deduplicate :-separated path
+# warning: modifies variable!
+pathvar_dedup() {
+    local -n path="$1"
+    local -a input
+    local -a output
+    local -A count
+#   echo -n "path count: "
+#   echo "$path" | tr : '\n' | wc -l
+    IFS=':' read -a input <<< "$path"
+#   echo "input count: ${#input[@]}"
+#   declare -p input
+    for x in "${input[@]}"; do (( count["$x"]++ )) || output+=("$x"); done
+#   echo "count count: ${#count[@]}"
+#   declare -p count
+#   declare -p output
+    path=$(join_by : "${output[@]}")
+}
+
+
 # WISHLIST
 
 # deleting items
