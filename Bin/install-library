@@ -2,7 +2,6 @@
 
 # Who are we, where are we, where is our stuff, what are our destinations?
 
-echo "\$0=$0"
 pgm_name="${0##*/}"
 pgm_path=$(realpath "$0")
 bash_dir="${pgm_path%/[Bb]in/*}"
