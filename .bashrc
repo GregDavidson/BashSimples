@@ -15,7 +15,7 @@
 # script and then terminate.
 
 # return if we're in a non-interactive shell
-[[ -t 0 ]] &&  [[ "$-" == *i* ]] || return
+[[ "$-" == *i* ]] || return
 
 # bring in way too many things!
 simple_require interactive
