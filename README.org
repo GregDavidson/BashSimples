@@ -5,20 +5,20 @@ power users but also for setting up a nice environment for a GUI Desktop.
 
 ** Profiles (put these in your home directory)
 
-| Profile Script       | Purpose                                                          |
-|----------------------+------------------------------------------------------------------|
-| .bash_profile        | sourced at login time by bash                                    |
-| .xprofile            | symbolic link to .bash_profile for X Display Managers            |
-| .bashrc              | sourced by non-login shell                                       |
-| bash_profile.d       | example scripts for your ~/.bash_profile.d |
-| bash_profile_local.d | example scripts for your ~/.bash_profile._locald |
-| bashrc.d             | example scripts for your ~/.bashrc.d |
+| Profile Script       | Purpose                                               |
+|----------------------+-------------------------------------------------------|
+| .bash_profile        | sourced at login time by bash                         |
+| .xprofile            | symbolic link to .bash_profile for X Display Managers |
+| .bashrc              | sourced by non-login shell                            |
+| bash_profile.d       | sample scripts for your ~/.bash_profile.d             |
+| bash_profile_local.d | sample scripts for your ~/.bash_profile._locald       |
+| bashrc.d             | sample scripts for your ~/.bashrc.d                   |
 
-You will probably also want to
+You may want to do something like this
 #+begin_src bash
   cd
-  touch .bash_profile_local
   mkdir -p .bash_profile.d .bash_profile_local.d .bashrc.d
+  >>.bash_profile_local echo 'if_src_dir ~/.bash_profile_local.d'
 #+end_src
 
 ** Simples System
