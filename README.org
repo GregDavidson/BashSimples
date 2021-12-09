@@ -1,4 +1,4 @@
-* Directory: /Shared/Lib/Bash **or** ~/Lib/Bash
+* Directory: ~/Lib/Bash
 
 This is a collection of scripts which can make Bash much nicer, especially for
 power users but also for setting up a nice environment for a GUI Desktop.
