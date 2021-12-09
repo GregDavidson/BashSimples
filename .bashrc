@@ -6,25 +6,19 @@
 #  revised to use my simples package: April 2008
 
 [ -n "$simples_provided" ] || {
-  for f in $simples_bash {$HOME,/Shared}/Lib/Bash/Simples/simples.bash; do
-    [ -r "$f" ] && { . "$f"; break; }
-  done
+    . ~/.bash_profile
+    # which will also source this script, so we're done!
+    return
 }
 
-if [ -z "$simples_provided" ]; then
-	>&2 echo "Error: .bashrc punting without simples!"
-else
-	if [ -n "$PS1" ]; then
-		:
-		# interactive shell
+# That's enough if we're in a non-interactive shell which is just going to run a
+# script and then terminate.
 
-		# require env
-		# require interactive
+# return if we're in a non-interactive shell
+[[ -t 0 ]] &&  [[ "$-" == *i* ]] || return
 
-		# alias whence='type -p'
-		# ifsrc() { [ -f $1 ] && . $1; }
-		#ifsrc /etc/bashrc
-		#ifsrc $HOME/.kbashrc
-		PS1='$ '
-	fi
-fi
+# bring in way too many things!
+simple_require interactive
+
+# maybe nicer to bring in selected bundles of nice features
+if_src_dir ~/.bashrc.d

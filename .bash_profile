@@ -28,6 +28,13 @@ if_src() {
 }
 export -f if_src
 
+if_src_dir() {
+    for d; do
+        [ -d "$d" ] && if_src "$d"*
+    done
+}
+export -f if_src
+
 # Tests if argument is a command
 is_cmd() { type "$1" > /dev/null; }
 export -f is_cmd
@@ -65,8 +72,7 @@ if_src $LOGIN_INITS $HOME/.bash_profile_local"
 stty erase '^?' kill '^u' intr '^c' quit '^\' susp '^z'
 
 # Source your favorite login-time scripts
-array_ls bashitos ~/.bash_profile.d
-ifsrc "${bashitos[@]}"
+if_src_dir ~/.bash_profile.d
 
 # Source your favorite interactive session features
-ifsrc "${BASH_ENV:-$HOME/.bashrc}"
+if_src "${BASH_ENV:-$HOME/.bashrc}"
