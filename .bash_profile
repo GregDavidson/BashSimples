@@ -33,7 +33,7 @@ if_src_dir() {
         [ -d "$d" ] && if_src "$d"*
     done
 }
-export -f if_src
+export -f if_src_dir
 
 # Tests if argument is a command
 is_cmd() { type "$1" > /dev/null; }
