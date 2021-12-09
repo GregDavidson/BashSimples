@@ -1,22 +1,37 @@
-# Directory: /Shared/Lib/Bash **or** ~/Lib/Bash
+* Directory: /Shared/Lib/Bash **or** ~/Lib/Bash
 
-These are some Bash scripts I developed for NGender partners.
+This is a collection of scripts which can make Bash much nicer, especially for
+power users but also for setting up a nice environment for a GUI Desktop.
 
-## Profiles (put these in your home directory)
+** Profiles (put these in your home directory)
 
-| Profile Script	| Purpose
-|-----------------------|--------
-| .bash_profile		| sourced at login time by bash
-| .bashrc		| sourced by non-login shell, sets up simples system if it exists, enhances an interactive shell
+| Profile Script | Purpose                                               |
+|----------------+-------------------------------------------------------|
+| .bash_profile  | sourced at login time by bash                         |
+| .xprofile      | symbolic link to .bash_profile for X Display Managers |
+| .bashrc        | sourced by non-login shell                            |
 
-## Simples System
+You will probably also want to
+#+begin_src bash
+  cd
+  touch .bash_profile_local
+  mkdir -p .bash_profile.d .bash_profile_local.d .bashrc.d
+#+end_src
 
-Simples/		a system to manage shell extension modules
+** Simples System
+   
+- Simples/ ::	a system to manage shell extension modules
 
-| Simples Command	| Purpose
-|-----------------------|--------
-| simple_require *simple*	| loads module *simple* if not present
-| simple_source *simple*	| loads module *simple* unconditionally
-| Simples/Bin/*			| scripts to test simples modules
+The Simples modules allow you to selectively add desirable functionality to your
+Bash environment.
 
-Note: The word *simple* used to refer to a remedy for a problem.
+| Simples Command              | Purpose                                    |
+|------------------------------+--------------------------------------------|
+| simple_require /module-name/ | loads module /module-name/ if not present  |
+| simple_source /module-name/  | loads module /module-name/ unconditionally |
+| Simples/Bin/*                | scripts to test simples modules            |
+
+Notes:
+1. The word *simple* used to refer to a remedy for a problem.
+2. There are Simples systems for some other shells with the same command names
+3. You can help extend the Simples system for Bash and other shells!
