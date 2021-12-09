@@ -1,25 +1,72 @@
-# where: ~/.bash_profile
-#  what: bash login profile - sourced by login Bourne Again Shell
-#   who: J. Greg Davidson
-#  when: April 1996
+# * where: ~/.bash_profile
+#    what: bash login profile - sourced by login Bourne Again Shell
+#    who: J. Greg Davidson
+#   when: April 1996 - December 2021
 
-ifsrc() { [ -f "$1" ] && . "$1"; }
+# Note: This file should be linked to by ~/.xprofile
+# because some X Display Managers source that at login time.
+
+# ** a few essential functions
+
+# These could be moved into Simples, but this script deserves some kudos too
+
+# Source a file if it exists and has not already been sourced.
+if_src() {
+    declare -gA if_src_count
+    local f g
+    for f; do
+        if [ ! -f "$f" ]; then
+            >&2 echo "if_src warning: No file $f!"
+        else
+            g=$(realpath "$f") 
+            (( if_src_count["$g"] )) || {
+                . "$g"
+                let ++if_src_count["$g"] 
+            }
+        fi
+    done
+}
+export -f if_src
+
+# Tests if argument is a command
 is_cmd() { type "$1" > /dev/null; }
+export -f is_cmd
 
-# Let's live peacefully with sh and ksh
-ifsrc ~/.profile
+# ** Load "Simples" system and path management
 
-# Set up my "Simples" modular library system
-ifsrc "$HOME/Lib/Bash/Simples/simples.bash"
-# if that worked, let's add some program directories
-is_cmd simple_require && {
-	simple_require paths
-	path_add -a ~/SW/*/[Bb]in{,.`arch`} ~/Shared/Bin
+# Be sure to install the awesome Simples extensions for Bash!
+
+if_src "${simples_bash-$HOME/Lib/Bash/Simples/simples.bash}"
+[ -n "${simples_provided-}" ] || {
+  >&2 echo ".bash_profile failed to load Simples; exiting"
+  return 1
 }
 
-# If we're interactive, bring in interactive features
-[[ -t "$fd" || -p /dev/stdin ]] && {
-	ifsrc "${BASH_ENV:-~/.bashrc}"
-	stty erase '^h' kill '^u' intr '^c' quit '^\' susp '^z'
-	is_cmd fortune && { echo; fortune -a; echo; }
-}
+simple_require paths
+
+# ** Source System and User Specific Content
+
+# To add your favorite paths, consider this command:
+# path_add -aW ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
+
+# Setup any subsystems which need environment variable support
+# e.g. GUIX, mmh, etc.
+
+# To keep this file generic, we'll do our things here:
+
+if_src $LOGIN_INITS $HOME/.bash_profile_local"
+
+# ** Interactive Shell Features
+
+# return if we're in a non-interactive shell
+[[ -t 0 ]] &&  [[ "$-" == *i* ]] || return
+
+# is this ancient s**t still meaningful?
+stty erase '^?' kill '^u' intr '^c' quit '^\' susp '^z'
+
+# Source your favorite login-time scripts
+array_ls bashitos ~/.bash_profile.d
+ifsrc "${bashitos[@]}"
+
+# Source your favorite interactive session features
+ifsrc "${BASH_ENV:-$HOME/.bashrc}"
