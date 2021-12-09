@@ -8,7 +8,7 @@ bash_dir="${pgm_path%/[Bb]in/*}"
 simples_dir="$bash_dir/Simples"
 lib_dest=~/Lib
 bash_dest="$lib_dest/Bash"
-simples_dest="$lib_dest/Simples"
+simples_dest="$bash_dest/Simples"
 
 # Check what we can regardless of our specific goal
 
