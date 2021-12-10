@@ -1,7 +1,8 @@
-#!/usr/bin/bash -u
+#!/usr/bin/bash
 
-# Who are we, where is our stuff, what are our destinations?
+# ** Who are we, where is our stuff, what are our destinations?
 
+set -u
 pgm_name="${0##*/}"
 bash_lib=~/Lib/Bash
 simples_lib="$bash_lib/Simples"
@@ -12,7 +13,7 @@ profile_d="${profile}.d"
 rc='.bashrc'
 rc_d="${rc}.d"
 
-# Communication and Exits
+# ** Communication and Exits
 
 pgm_msg() {
     level="$1"; shift
@@ -28,9 +29,9 @@ pgm_error() {
     pgm_exit "$code" ' error' "$@"
 }
 
-# Check what we can regardless of our specific goals
+# ** Check what we can regardless of our specific goals
 
-(( BASH_VERSINFO[0] >= 5 )) || pgm_error 1 "Please upgrade Bash to version 5 or better"
+(( BASH_VERSINFO[0] >= 5 )) || pgm_error 1 'Please upgrade Bash to version 5 or better'
 
 for d in "$bash_lib" "$simples_lib"; do
     [ -d "$d" ] || pgm_error 2 "No directory $d - maybe run install-library script?"
@@ -48,25 +49,27 @@ for d in "$bash_lib"; do
     done
 done
 
-# Get informed consent
+# ** Get informed consent
 
-pgm_msg '' "What we offer to do for you:"
-cat <<"EOF"
+cat << EOF
+
+$pgm_name: What we offer to do for you:
+
 1. Backup your $profile and $rc
 2. Replace them with links to the ones in $bash_lib
-   - which exploit the features of $simples_lib
+   which exploit the features of $simples_lib
 3. Ensure you have a $local script
 3. Ensure you have directories for scriptlets
-   - $profile_d
-   - $local_d
-   - $rc_d
+   $profile_d
+   $local_d
+   $rc_d
 EOF
 printf "%s [yn] " "Shall we proceed?"
 
 read answer junk
-[[ "X$answer" == "X[Yy]*" ]] || pgm_exit 5 "Your answer was not y. Goodbye!"
+[[ "X$answer" == X[Yy]* ]] || pgm_exit 5 '' 'Your answer was not y. Goodbye!'
 
-# Safely install the new scripts
+# ** Safely install the new scripts
 
 save=~/.save-dots
 saved=( )
@@ -84,19 +87,22 @@ for d in "$HOME"; do
             ln -s "$bash_lib/$f" "$d/$f" ||
                 pgm_error 8 "ln -s $bash_lib/$f $d/$f failed"
         }
-        fi
     done
 done
 
-(( #saved[@] > 0 )) &&
-    pgm_msg "Directory $save contains displaced files ${saved[@]}"
+(( ${#saved[@]} > 0 )) && {
+    pgm_msg '' "${#saved[@]} file(s) were moved to $save:"
+    for f in "${saved[@]}"; do
+        printf "\t%s\n" "$f"
+    done
+}
 
-# Ensure the other bits are set up
+# ** Ensure the other bits are set up
 
 cd
 
 # Ensure these lovely directories exist
-for d in "$profile_d" "$local_d" "$bashrc_d"; do
+for d in "$profile_d" "$local_d" "$rc_d"; do
     mkdir -p "$d"
 done
 
@@ -106,3 +112,4 @@ for f in ".bash_profile_local"; do
     [ -L "$f" ] && rm "$f"
     cp "$bash_lib/$f" .
 }
+done
