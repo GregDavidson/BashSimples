@@ -14,11 +14,11 @@ power users but also for setting up a nice environment for a GUI Desktop.
 | bash_profile_local.d | sample scripts for your ~/.bash_profile._locald       |
 | bashrc.d             | sample scripts for your ~/.bashrc.d                   |
 
-You may want to do something like this
+You can install these things automatically either by running or studying and
+following these provided scripts:
 #+begin_src bash
-  cd
-  mkdir -p .bash_profile.d .bash_profile_local.d .bashrc.d
-  >>.bash_profile_local echo 'if_src_dir ~/.bash_profile_local.d'
+  Bin/install-library
+  Bin/install-dotfiles
 #+end_src
 
 ** Simples System
