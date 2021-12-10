@@ -12,6 +12,8 @@ profile='.bash_profile'
 profile_d="${profile}.d"
 rc='.bashrc'
 rc_d="${rc}.d"
+xprofile='.xprofile'
+save=~/.save-dots
 
 # ** Communication and Exits
 
@@ -19,9 +21,10 @@ pgm_msg() {
     level="$1"; shift
     >&2 printf "%s%s: %s\n" "$pgm_name" "$level" "$*"
 }
+pgm_warn() { pgm_msg ' warning' "$*!"; }
 pgm_exit() {
     local code="$1"; level="$2"; shift 2
-    pgm_msg "$level" "$@"
+    pgm_msg "$level" "$@!"
     exit "$code"
 }
 pgm_error() {
@@ -55,7 +58,7 @@ cat << EOF
 
 $pgm_name: What we offer to do for you:
 
-1. Backup your $profile and $rc
+1. Backup your $profile and $rc in $save
 2. Replace them with links to the ones in $bash_lib
    which exploit the features of $simples_lib
 3. Ensure you have a $local script
@@ -67,25 +70,24 @@ EOF
 printf "%s [yn] " "Shall we proceed?"
 
 read answer junk
-[[ "X$answer" == X[Yy]* ]] || pgm_exit 5 '' 'Your answer was not y. Goodbye!'
+[[ "X$answer" == X[Yy]* ]] || pgm_exit 5 '' 'Your answer was not y. Goodbye'
 
 # ** Safely install the new scripts
 
-save=~/.save-dots
 saved=( )
 for d in "$HOME"; do
     for f in "$profile" "$rc" ; do
         [ -L "$d/$f" ] && rm "$d/$f"
         [ -e "$d/$f" ] && {
             cmp -s "$d/$f" "$bash_lib/$f" && {
-                pgm_msg "$d/$f is already the same as $bash_lib/$f"
+                pgm_msg "$f is already the same as $bash_lib/$f"
                 break
             }
             mkdir -p "$save" || pgm_error 6 "Can't make directory $save"
             mv --backup=numbered "$d/$f" "$save" && saved+=("$f") ||
-                pgm_error 7 "Can't save $d/$f to directory $save"
+                pgm_error 7 "Can't save $f to directory $save"
             ln -s "$bash_lib/$f" "$d/$f" ||
-                pgm_error 8 "ln -s $bash_lib/$f $d/$f failed"
+                pgm_warn "linking $f failed"
         }
     done
 done
@@ -101,6 +103,16 @@ done
 
 cd
 
+for x in "$xprofile"; do
+    [ -L "$x" ] && rm "$x" ||
+            pgm_warn "removing $x link failed"
+    if [ -e "$x" ]; then
+        pgm_msg '' "You may need to update your $x"
+    else
+        ln -s "$profile" "$x" || pgm_warn "linking $x failed"
+    fi
+done
+
 # Ensure these lovely directories exist
 for d in "$profile_d" "$local_d" "$rc_d"; do
     mkdir -p "$d"
@@ -109,7 +121,12 @@ done
 # Ensure this script exists but don't touch it if it does!
 for f in ".bash_profile_local"; do
 [[ -e "$f" ]] || {
-    [ -L "$f" ] && rm "$f"
-    cp "$bash_lib/$f" .
+    [ -L "$f" ] && rm "$f" || pgm_warn "removing $f link failed"
+    cp "$bash_lib/$f" . || pgm_warn "copying $f failed"
 }
 done
+
+# For additional quality we could create a temporary save directory
+# for this run of the script and restore anything from there if its
+# replacement were to fail.  At the end, I could merge it in to the
+# regular save directory and rmdir it.
