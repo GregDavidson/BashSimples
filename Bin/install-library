@@ -10,62 +10,51 @@ lib_dest=~/Lib
 bash_dest="$lib_dest/Bash"
 simples_dest="$bash_dest/Simples"
 
-# Check what we can regardless of our specific goal
+# Communication and Escapes
 
-(( BASH_VERSINFO[0] >= 5 )) || {
-    >&2 echo "$pgm_name: You're running Bash Version $BASH_VERSION"
-    >&2 echo "$pgm_name: Please upgrade at least to version 5"
-    exit 1
+pgm_msg() {
+    level="$1"; shift
+    >&2 printf "%s %s: %s\n" "$pgm_name" "$level" "$*"
+}
+pgm() {
+    local code="$1"; level="$2"; shift 2
+    pgm_msg "$level" "$@"
+    "$level" "$code"
 }
 
+# Check what we can regardless of our specific goal
+
+(( BASH_VERSINFO[0] >= 5 )) ||
+    pgm 1 exit "Upgrade Bash from $BASH_VERSION to >= 5"
+
 for d in "$bash_dir" "$simples_dir"; do
-    [ -d "$d" ] || {
-        >&2 echo "$pgm_name: No directory $d"
-        exit 2
-    }
+    [ -d "$d" ] || pgm 2 exit "No directory $d"
 done
 
 for f in "$simples_dir/simples.bash"; do
-    [ -f "$f" ] || {
-        >&2 echo "$pgm_name: No file $f"
-        exit 3
-    }
+    [ -f "$f" ] || pgm 3 exit "No file $f"
 done
 
-[ -e "$simples_dest"   ] && {
-    echo "$pgm_name: You already have $simples_dest"
-    exit
-}
+[ -e "$simples_dest" ] && pgm 0 exit "You already have $simples_dest"
 
 # Action Processor
 
 # do_action name-of-action-array
 do_action() {
     local -n a="$1"
-    local answer
-    cmd="${a[1]}"; src="${a[2]}"; dst="${a[3]}"
-    printf "We will %s using command:\n\t%s\nOK? [yn] " "${a[0]}" "$cmd $src $dst"
+    local answer junk
+    local src="${a[2]}"; dst="${a[3]}"; cmd="${a[1]} $src $dst"
+    printf "We will %s using:\n\t%s\nOK? [yn] " "${a[0]}" "$cmd"
     read answer junk
-    [[ "X$answer" == "X[Yy]*" ]] || {
-        >&2 printf "%s: Your answer was not y. Goodbye!\n" "$pgm_name"
-        return 10
-    }
-    mkdir -p "$lib_dest" || {
-        >&2 echo "$pgm_name: Cannot mkdir -p $lib_dest"
-        return 11
-    }
-    [ -e '$src' ] || {
-        >&2 echo "$pgm_name error: No $src";
-        return 12
-    }
-    [ -L '$bash_dest' ] || [ -e '$bash_dest' ] && {
-        >&2 echo "$pgm_name error: $(file $dst)";
-        return 13
-    }
-    eval "$cmd $src $dst" || {
-        >&2 echo "$pgm_name command failed: $cmd $src $dst"
-        return 14
-    }
+    [[ "X$answer" == X[Yy]* ]] ||
+        pgm 10 return "Your answer was not y. Goodbye"
+    local dst_dir=$(dirname "$dst")
+    mkdir -p "$dst_dir" ||
+        pgm 11 return "Cannot mkdir -p $dst_dir"
+    [ -e "$src" ] || pgm 12 return "No $src"
+    [ -L "$bash_dest" ] || [ -e "$bash_dest" ] &&
+        pgm 12 return "$(file $dst)"
+    eval "$cmd" || pgm 14 return "command failed: $cmd"
 }
 
 # Action Arrays
@@ -100,9 +89,7 @@ done
 # Offer our services
 
 select request in "${menu[@]}"; do
-    echo "request: $request"
-    echo "REPLY: $REPLY"
     let index=--REPLY
-    actions+=(mv_bash ln_bash cp_bash)
     do_action "${actions[index]}"
+    exit $?
 done

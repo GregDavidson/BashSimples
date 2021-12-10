@@ -1,81 +1,102 @@
-#!/usr/bin/bash
+#!/usr/bin/bash -u
 
 # Who are we, where is our stuff, what are our destinations?
 
 pgm_name="${0##*/}"
-simples_dir="$bash_dir/Simples"
 bash_lib=~/Lib/Bash
 simples_lib="$bash_lib/Simples"
+local='.bash_profile_local'
+local_d="${local}.d"
+profile='.bash_profile'
+profile_d="${profile}.d"
+rc='.bashrc'
+rc_d="${rc}.d"
 
-# Check what we can regardless of our specific goal
+# Communication and Exits
 
-(( BASH_VERSINFO[0] >= 5 )) || {
-    >&2 echo "$pgm_name: You're running Bash Version $BASH_VERSION"
-    >&2 echo "$pgm_name: Please upgrade at least to version 5"
-    exit 1
+pgm_msg() {
+    level="$1"; shift
+    >&2 printf "%s%s: %s\n" "$pgm_name" "$level" "$*"
+}
+pgm_exit() {
+    local code="$1"; level="$2"; shift 2
+    pgm_msg "$level" "$@"
+    exit "$code"
+}
+pgm_error() {
+    local code="$1"; shift
+    pgm_exit "$code" ' error' "$@"
 }
 
+# Check what we can regardless of our specific goals
+
+(( BASH_VERSINFO[0] >= 5 )) || pgm_error 1 "Please upgrade Bash to version 5 or better"
+
 for d in "$bash_lib" "$simples_lib"; do
-    [ -d "$d" ] || {
-        >&2 echo "$pgm_name: No directory $d"
-        >&2 echo "$pgm_name: Maybe run the install-library script?"
-        exit 2
-    }
+    [ -d "$d" ] || pgm_error 2 "No directory $d - maybe run install-library script?"
 done
 
 for d in "$simples_lib"; do
     for f in "simples.bash"; do
-        [ -f "$d/$f" ] || {
-            >&2 echo "$pgm_name: No file $f"
-            exit 3
-        }
+        [ -f "$d/$f" ] || pgm_error 3 "No file $f"
     done
 done
 
 for d in "$bash_lib"; do
-    for f in .bash_profile .bashrc ; do
-        [ -f "$d/$f" ] || {
-            >&2 echo "$pgm_name: No file $f"
-            exit 4
-        }
+    for f in "$profile" "$rc" ; do
+        [ -f "$d/$f" ] || pgm_error 4 "No file $f"
     done
 done
+
+# Get informed consent
+
+pgm_msg '' "What we offer to do for you:"
+cat <<"EOF"
+1. Backup your $profile and $rc
+2. Replace them with links to the ones in $bash_lib
+   - which exploit the features of $simples_lib
+3. Ensure you have a $local script
+3. Ensure you have directories for scriptlets
+   - $profile_d
+   - $local_d
+   - $rc_d
+EOF
+printf "%s [yn] " "Shall we proceed?"
+
+read answer junk
+[[ "X$answer" == "X[Yy]*" ]] || pgm_exit 5 "Your answer was not y. Goodbye!"
+
+# Safely install the new scripts
 
 save=~/.save-dots
 saved=( )
 for d in "$HOME"; do
-    for f in .bash_profile .bashrc ; do
+    for f in "$profile" "$rc" ; do
         [ -L "$d/$f" ] && rm "$d/$f"
         [ -e "$d/$f" ] && {
             cmp -s "$d/$f" "$bash_lib/$f" && {
-                >&2 echo "$pgm_name: $d/$f is already the same as $bash_lib/$f"
+                pgm_msg "$d/$f is already the same as $bash_lib/$f"
                 break
             }
-            mkdir -p "$save" || {
-                >&2 echo "$pgm_name: Can't make directory $save"
-                exit 5
-            }
-            mv --backup=numbered "$d/$f" "$save" && saved+=("$f") || {
-                >&2 echo "$pgm_name: Can't save $d/$f to directory $save"
-                exit 6
-            }
-            ln -s "$bash_lib/$f" "$d/$f" || {
-                >&2 echo "$pgm_name: ln -s $bash_lib/$f $d/$f failed"
-                exit 7
-            }
+            mkdir -p "$save" || pgm_error 6 "Can't make directory $save"
+            mv --backup=numbered "$d/$f" "$save" && saved+=("$f") ||
+                pgm_error 7 "Can't save $d/$f to directory $save"
+            ln -s "$bash_lib/$f" "$d/$f" ||
+                pgm_error 8 "ln -s $bash_lib/$f $d/$f failed"
         }
         fi
     done
 done
 
-(( #saved[@] > 0 )) && {
-    >&2 echo "$pgm_name: Directory $save contains displaced files ${saved[@]}"
-}
+(( #saved[@] > 0 )) &&
+    pgm_msg "Directory $save contains displaced files ${saved[@]}"
+
+# Ensure the other bits are set up
 
 cd
 
 # Ensure these lovely directories exist
-for d in .bash_profile.d .bash_profile_local.d .bashrc.d; do
+for d in "$profile_d" "$local_d" "$bashrc_d"; do
     mkdir -p "$d"
 done
 
