@@ -12,17 +12,23 @@ simples_dest="$bash_dest/Simples"
 
 # Check what we can regardless of our specific goal
 
+(( BASH_VERSINFO[0] >= 5 )) || {
+    >&2 echo "$pgm_name: You're running Bash Version $BASH_VERSION"
+    >&2 echo "$pgm_name: Please upgrade at least to version 5"
+    exit 1
+}
+
 for d in "$bash_dir" "$simples_dir"; do
     [ -d "$d" ] || {
         >&2 echo "$pgm_name: No directory $d"
-        exit 1
+        exit 2
     }
 done
 
 for f in "$simples_dir/simples.bash"; do
     [ -f "$f" ] || {
         >&2 echo "$pgm_name: No file $f"
-        exit 2
+        exit 3
     }
 done
 
