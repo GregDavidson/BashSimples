@@ -1,0 +1,87 @@
+#!/usr/bin/bash
+
+# Who are we, where is our stuff, what are our destinations?
+
+pgm_name="${0##*/}"
+simples_dir="$bash_dir/Simples"
+bash_lib=~/Lib/Bash
+simples_lib="$bash_lib/Simples"
+
+# Check what we can regardless of our specific goal
+
+(( BASH_VERSINFO[0] >= 5 )) || {
+    >&2 echo "$pgm_name: You're running Bash Version $BASH_VERSION"
+    >&2 echo "$pgm_name: Please upgrade at least to version 5"
+    exit 1
+}
+
+for d in "$bash_lib" "$simples_lib"; do
+    [ -d "$d" ] || {
+        >&2 echo "$pgm_name: No directory $d"
+        >&2 echo "$pgm_name: Maybe run the install-library script?"
+        exit 2
+    }
+done
+
+for d in "$simples_lib"; do
+    for f in "simples.bash"; do
+        [ -f "$d/$f" ] || {
+            >&2 echo "$pgm_name: No file $f"
+            exit 3
+        }
+    done
+done
+
+for d in "$bash_lib"; do
+    for f in .bash_profile .bashrc ; do
+        [ -f "$d/$f" ] || {
+            >&2 echo "$pgm_name: No file $f"
+            exit 4
+        }
+    done
+done
+
+save=~/.save-dots
+saved=( )
+for d in "$HOME"; do
+    for f in .bash_profile .bashrc ; do
+        [ -L "$d/$f" ] && rm "$d/$f"
+        [ -e "$d/$f" ] && {
+            cmp -s "$d/$f" "$bash_lib/$f" && {
+                >&2 echo "$pgm_name: $d/$f is already the same as $bash_lib/$f"
+                break
+            }
+            mkdir -p "$save" || {
+                >&2 echo "$pgm_name: Can't make directory $save"
+                exit 5
+            }
+            mv --backup=numbered "$d/$f" "$save" && saved+=("$f") || {
+                >&2 echo "$pgm_name: Can't save $d/$f to directory $save"
+                exit 6
+            }
+            ln -s "$bash_lib/$f" "$d/$f" || {
+                >&2 echo "$pgm_name: ln -s $bash_lib/$f $d/$f failed"
+                exit 7
+            }
+        }
+        fi
+    done
+done
+
+(( #saved[@] > 0 )) && {
+    >&2 echo "$pgm_name: Directory $save contains displaced files ${saved[@]}"
+}
+
+cd
+
+# Ensure these lovely directories exist
+for d in .bash_profile.d .bash_profile_local.d .bashrc.d; do
+    mkdir -p "$d"
+done
+
+# Ensure this script exists but don't touch it if it does!
+for f in ".bash_profile_local"; do
+[[ -e "$f" ]] || {
+    [ -L "$f" ] && rm "$f"
+    cp "$bash_lib/$f" .
+}
