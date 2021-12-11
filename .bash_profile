@@ -30,7 +30,7 @@ export -f if_src
 
 if_src_dir() {
     for d; do
-        [ -d "$d" ] && if_src "$d"*
+        [ -d "$d" ] && if_src "$d"/*
     done
 }
 export -f if_src_dir
