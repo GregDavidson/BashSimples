@@ -54,7 +54,7 @@ simple_require paths
 # ** Source System and User Specific Content
 
 # To add your favorite paths, consider this command:
-# path_add -aW ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
+# path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
 
 # Setup any subsystems which need environment variable support
 # e.g. GUIX, mmh, etc.
