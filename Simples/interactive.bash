@@ -7,18 +7,18 @@
 # Creative Commons Attribution 4.0 International License
 # http://creativecommons.org/licenses/by/4.0.
 
-ifsrc() { [ -f $1 ] && . $1; }		# source a file if it exists
 get_env() {  eval "echo \$$1" ; }	# get_env var - get value of var
 set_env() { eval "export $1=$2" ; }	# set_env var value - set var to value
 function stderr { echo "$*" >&2;  }	# send a message to the standard output
 function error { stderr "Error: $*"; }
 function usage { stderr "Usage: $*"; }
 
+# List System Daemons
 function lsd { ps ax | awk '$2=="?"{print $5}' | tr -d '[]' | sort -u | fmt; }
 
 type -p less >/dev/null && alias more='less'
 
-for program in gvim vim v; do
+for program in gvim vim; do
     type -p "$program" >/dev/null && alias v="$program" && break
 done
 

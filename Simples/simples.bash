@@ -1,5 +1,5 @@
 #!/bin/bash simples_test.bash
-# simples.bash - simple mechanisms for better Bash scripts
+# * simples.bash - simple mechanisms for better Bash scripts
 simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 # Copyright (c) 2008 J. Greg Davidson. This work is licensed under a
@@ -13,7 +13,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # shopt -s nullglobshopt -s nullglob
 # shopt -u nullglobshopt -u nullglob
 
-##	Table of Contents
+##	** Table of Contents
 
 #	Table of Contents
 #	Introduction
@@ -26,7 +26,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	managing global resource dependencies
 #	safely sourcing scripts
 
-##	Introduction
+##	** Introduction
 
 # This is a Bash port of the simples package developed for the Bourne Shell,
 # Any places where code here will not run under (pd)ksh should be documented!
@@ -40,7 +40,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	simples-man.txt		- steps towards a man page
 #	simples-impl-notes.txt	- implementation notes
 
-# Dependencies:
+# ** Dependencies:
 
 # Assumptions about shell packages (change below, not here!):
 #	simples_bash_suffixes: .bash .kbash .sh
@@ -67,14 +67,14 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # gets a syntax error and using the function keyword
 # fixes it!
 
-##	simple output
+##	** simple output
 
 simple_out() { printf "%s\n" "$*"; } # { echo -E "$@"; }
 simple_out_inline() { printf "%s" "$*"; } # { echo -En "$@"; }
 simple_msg() { >&2 printf "%s\n" "$*"; } # { >&2 echo -E "$@"; }
 simple_msg_inline() { >&2 printf "%s" "$*"; } # { >&2 echo -En "$@"; }
 
-##	join, pad, preargs
+##	** join, pad, preargs
 
 # simple_join1 DELIMTER [WORD...]
 # DELIMITER must be a single character or an empty string
@@ -127,7 +127,7 @@ simple_preargs() {
     return 1
 }
 
-##	error reporting and exiting
+##	** error reporting and exiting
 
 simple_error_msg() {
     simple_out_inline "${pgm_name:-$0} error"
@@ -156,7 +156,7 @@ simple_show() {                 # for debugging
     simple_msg ''
 }
 
-##	regexp matching and cutting
+##	** regexp matching and cutting
 
 simple_name_re='[A-Za-z_][A-Za-z0-9_]*'
 simple_name_err='is not a simple name'
@@ -238,7 +238,9 @@ simple_env_default() {
     export "${1}"
 }
 
-##	lists and sets
+##	** lists and sets
+
+# These are arguably obsoleted by modern Bash arrays
 
 # Simple lists and sets as strings for shells lacking
 # arrays and/or hashes.
@@ -293,7 +295,7 @@ simple_delim_set_append() {
   esac
 }
 
-##	managing global resource dependencies
+##	** managing global resource dependencies
 
 simples_provided='simples'
 
@@ -381,5 +383,6 @@ simple_require() {
 
 # WISHLIST
 
-# # bash 4.2
-## make any simplifications possible
+# Update for Bash Version >= 5
+# Modularize the remainders into separate simples
+# make things more elgant: +Simplicity, +Generality, +Power
