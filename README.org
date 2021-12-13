@@ -3,6 +3,8 @@
 This is a collection of scripts which can make Bash much nicer, especially for
 power users but also for setting up a nice environment for a GUI Desktop.
 
+If you would like to know the story behind this project, see STORY below.
+
 ** Profiles (put these in your home directory)
 
 | Profile Script       | Purpose                                               |
@@ -14,8 +16,9 @@ power users but also for setting up a nice environment for a GUI Desktop.
 | bash_profile_local.d | sample scripts for your ~/.bash_profile._locald       |
 | bashrc.d             | sample scripts for your ~/.bashrc.d                   |
 
-You can install these things automatically either by running or studying and
-following these provided scripts:
+You can install these things automatically either by /running/ or /studying and
+following/ these provided scripts:
+
 #+begin_src bash
   Bin/install-library
   Bin/install-dotfiles
@@ -38,3 +41,81 @@ Notes:
 1. The word *simple* used to refer to a remedy for a problem.
 2. There are Simples systems for some other shells with the same command names
 3. You can help extend the Simples system for Bash and other shells!
+
+** STORY
+
+Late last millennium (during the years beginning with a 1 instead of a 2) the
+author found himself needing to use several similar but annoyingly different
+shells on different Unix-like platforms.
+
+| Program  | Name              | What is was about     | Pros                    | Cons                        |
+|----------+-------------------+-----------------------+-------------------------+-----------------------------|
+| sh       | Mashey shell      | Early Unix shell      | better than nothing     | mediocre all around         |
+| sh       | Bourne Shell      | More Elegant Shell    | Good for Scripting      | mediocre at interactive use |
+| csh      | C Shell           | Nicer Shell           | OK for scripting        | Better for interactive use  |
+| AT&T ksh | Korn Shell        | Better all around     | Great scripting         | AT&T Proprietary :-(        |
+| pdksh    | Public Domain ksh | Subset of ksh         | Good for SCripting      | OK for interactive use      |
+| POSIX    | Standard shell    | Subset of ksh         | Helps productivity      | Missing useful features     |
+| Bash     | Gnu Bash          | Power & Freedom       | Ok for scripting        | Good for interactive use    |
+| tcsh     | T-Shell           | a better csh          | Some nice features      | Not POSIX Compliant         |
+| ksh93    | latest ksh        | better & Open Source! | Great scripting         | Dated                       |
+| zsh      | Z Shell           | Features Galore       | Many wonderful features | Lots of complexity          |
+
+
+At the time this project was begun, the full =ksh= was still proprietary and
+=zsh= was still obscure - well, it was obscure to me! I found myself having to
+constantly adapt to the annoying differences and missing features of the shells
+I was using. I couldn't write good scripts which would work in any shell.
+Fortunately, most of the shells supported /Shell Functions/, i.e. they were
+/programmable/ - so I should be able to do something about this mess!
+
+I began the /Simples Project/ by writing a set of shell functions to deal with
+common issues in scripting, e.g. managing lists. I wrote a version of those
+functions for the Bourne =sh=, the Public Domain =Ksh= and an early version of
+=Bash=. I created a shell-independent module system, called /Simples/ to manage
+modules consisting of logical groups of such functions.
+
+With the /Simples System/ I could now write nicer, higher-level and more
+portable scripts with any of the shells I had to contend with. And now, thanks
+to GitHub, so can you!
+
+There is a moral to this story: When other people provide you with
+/programmable/ tools which imperfectly meets your needs and aspirations, /raise
+the level of your tools/ by programming them. And maybe you will inspire others
+to improve your work and we'll all benefit!
+
+** Alternatives
+
+=ksh= seems to be the best /Posix/-compliant shell for scripting. =zsh= has the
+most features for interactive use and is a close second in scripting power.
+Using =bash= from =emacs= provides an especially nice interactive experience.
+=emacs= is also a nice platform for developing scripts and programs in much
+nicer languages - frankly, writing any but the most trivial scripts in any of
+these shell languages is probably a bad idea!
+   
+** Future Plans
+
+I am keeping my eye on many new developments in programmable user interfaces and
+nice scripting languages. One of the most productive scripting and GUI languages
+=tcl=. Some of the newer /Lisps/ are getting better at scripting and have
+spawned shell projects, e.g. =scheme= with =scsh=, =racket= with =rash=, =guile=
+with =gash= and =clojure= with =closh=. But again, there's no good reason to use
+the same tool for issuing interactive commands and writing scripts.
+
+I consider the =sh= and =pdksh= versions of the /Simples System/ to be obsolete.
+I have no plans of porting the /Simples System/ to =zsh=. I have no interest in
+non-POSIX-complient shells - sorry tcsh and fish! So I have no ambitious plans
+for the /Simples System/.
+
+I will try to keep the Bash Version of the /Simples System/ safe from /software
+rot/ and occasionally incorporate minor improvements, especially those that
+become available as =bash= evolves. (It would be really nice, e.g. if Chet would
+fix the horrible =-n= =nameref= botch!)
+
+I am interested in your constructive feedback and any pull requests you may send
+me which may make the /Simples System/ better /without/ increasing its
+complexity. As this is a very modest work, I would like to keep the license
+simple, compatible with the values of FLOSS, i.e. the Freedom of /Users/ to have
+their systems behave the way they wish should outweigh the Freedom of
+/Developers/ to have their creations operate as they imagine on other people's
+systems!
