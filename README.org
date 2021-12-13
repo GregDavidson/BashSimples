@@ -38,9 +38,9 @@ Bash environment.
 | Simples/Bin/*                | scripts to test simples modules            |
 
 Notes:
-1. The word *simple* used to refer to a remedy for a problem.
-2. There are Simples systems for some other shells with the same command names
-3. You can help extend the Simples system for Bash and other shells!
+1. The word /simple/ used to refer to a remedy for a problem.
+2. There are /Simples Systems/ for some other shells with the same command names
+3. You can help extend the /Simples System/ for =bash= and other shells!
 
 ** STORY
 
@@ -54,7 +54,7 @@ shells on different Unix-like platforms.
 | sh       | Bourne Shell      | More Elegant Shell    | Good for Scripting      | mediocre at interactive use |
 | csh      | C Shell           | Nicer Shell           | OK for scripting        | Better for interactive use  |
 | AT&T ksh | Korn Shell        | Better all around     | Great scripting         | AT&T Proprietary :-(        |
-| pdksh    | Public Domain ksh | Subset of ksh         | Good for SCripting      | OK for interactive use      |
+| pdksh    | Public Domain ksh | Subset of ksh         | Good for Scripting      | OK for interactive use      |
 | POSIX    | Standard shell    | Subset of ksh         | Helps productivity      | Missing useful features     |
 | Bash     | Gnu Bash          | Power & Freedom       | Ok for scripting        | Good for interactive use    |
 | tcsh     | T-Shell           | a better csh          | Some nice features      | Not POSIX Compliant         |
