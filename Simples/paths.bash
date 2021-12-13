@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# * Simples paths.bash
+
 # J. Greg Davidson
 # Support for environment path variables
 
@@ -7,6 +9,7 @@
 # Creative Commons Attribution 4.0 International License
 # http://creativecommons.org/licenses/by/4.0.
 
+# See Implementation Notes at bottom
 # See WISHLIST at bottom
 
 # Requires simples package.
@@ -14,241 +17,294 @@
 # New Bash scripting technique (borrowed from TCL):
 # Unite related functions via aliased variables, especially arrays!
 
+# ** Somewhat General Purpose Functions
+
 # Move some of the utility functions here to simples.bash??
 
-# It really requires * instead of @ - sigh!
+# error_accum error_count message_array message...
+# Increment count and append message to array
+error_accum() {
+    local -n error_accum_count="$1"
+    local -n error_accum_msgs="$2"
+    shift 2
+    let ++error_accum_count
+    error_accum_msgs+=("error: $*")
+}
+
+# warn_accum message_array message...
+# Append message to array
+warn_accum() {
+    local -n warn_accum_msgs="$1"; shift
+    warn_accum_msgs+=("warning: $*")
+}
+
+# enum_set count message_array hash key given-value allowed_value...
+enum_set() {
+    local -n enum_set_count="$1"
+    local -n enum_set_msgs="$2"
+    local -n enum_set_array="$3"
+    local k="$4" v="$5" ; shift 5
+    local x ; for x; do
+        [[ "$v" == $x ]] && {
+            enum_set_array[$k]="$v" ; return 0
+        }
+    done
+    let ++enum_set_count
+    enum_set_msgs+=("no $k option of $v")
+    return 1 
+}
+
+# Bash requires * here instead of @!
 join_delim_args() {
     local IFS="$1"; shift; echo "$*"
 }
 export -f join_delim_args
 
-# split_array_delim_str array_name 1-char-delim delimited-string
-# split a string into array elements by a 1-character delimiter
+# split_array_delim_str array_name 1-char-delim string
+# Split string into array elements by given delimiter
 split_array_delim_str() {
-    local -n array="$1"   
-    IFS="$2" read -a array <<< "$$3"
+    local -n split_array_delim_str_array="$1"   
+    IFS="$2" read -a split_array_delim_str_array <<< "$3"
+#    IFS="$2" read -a $!1 <<< "$3"
 }
 export -f split_array_delim_str 
 
-# pathvar_dedup_array input output
-# warning: modifies output!
-pathvar_dedup_array() {
-    local -n input="$1"
-    local -n output
-    local -A count
+# dedup_array input_array output_array
+# warning: replaces output_array!
+dedup_array() {
+    local -n dedup_array_input="$1"
+    local -n dedup_array_output="$2"
+    local -A counts
     local x
-    for x in "${input[@]}"; do (( count["$x"]++ )) || output+=("$x"); done
+    dedup_array_output=( )
+    for x in "${dedup_array_input[@]}"; do
+        (( counts["$x"]++ )) || dedup_array_output+=("$x")
+    done
 }
-export -f pathvar_dedup_array
+export -f dedup_array
 
 # pathvar_dedup path-variable
 # deduplicate : separated path
 # warning: modifies variable!
 pathvar_dedup() {
-    local -n path="$1"
+    local -n pathvar_dedup="$1"
     local -a input
     local -a output
-    split_array_delim_str input : path
-    pathvar_dedup_array input output
-    path=$(join_delim_args : "${output[@]}")
+    split_array_delim_str input : pathvar_dedup
+    dedup_array input output
+    pathvar_dedup=$(join_delim_args : "${output[@]}")
 }
 export -f pathvar_dedup
 
-# help test | grep '^ *-. *FILE'
-# echo [$(help test | sed -n 's/^ *-\(.\) FILE .*/\1/p' | tr -d '\n')]
-# [abcdefghLkprsSuwxOGN]
-# test_to hash arg
+# test_to error_cnt msg_array hash arg
+# hash[test]=arg
+# where arg is a single letter valid flag for Bash test
+# $ help test | grep '^ *-. *FILE'
+# $ echo [$(help test | sed -n 's/^ *-\(.\) FILE .*/\1/p' | tr -d '\n')]
 test_to() {
-    local -n a="$1"; shift
+    local -n test_to_cnt="$1"
+    local -n test_to_msgs="$2"
+    local -n test_to_opts="$3"; shift 3
     [[ "$1" == [abcdefghLkprsSuwxOGN] ]] || {
-        >&2 echo "test_to error: Unrecognized test $*"
-        return 1
+        error_accum test_to_cnt test_to_msgs "invalid test_to $*"
+        return 2
     }
-    a[test]="test -$1"
+    test_to_opts[test]="test -$1"
 }
 export -f test_to
 
 # test_from hash arg
-# evaluate [test] expression with arg
+# evaluate hash[test] with arg
 test_from() {
-    local -n a="$1"
-    eval "${a[test]} $2"
+    local -n test_from="$1"
+    eval "${test_from[test]} $2"
 }
 export -f test_from
 
-pathvar_add_usage='pathvar_add VAR-NAME [ -{OPTIONS}... item... ]...'
-pathvar_add_options='
-	-a		-- add at beginning
-	-z		-- add at end (the default)
-	-e		-- following items exist or item skipped
-	-E		-- same with warning
-	-f		-- following items exist as regular files or item skipped
-	-F		-- same with warning
-	-d		-- following items exist as directory or item skipped
-	-D		-- same with warning
-	-s		-- strict: any skip becomes transaction failure
-	-S		-- unstrict: back to silent or warning
-	-w		-- warn and unstrict: any skip generates a warning
-	-W		-- unwarn and unstrict: back to silent skipping
-  -v		-- write result back to shell var
-  -V		-- write result to environment var
-  --dedup=[no|silent|warn|fail]	-- deduplication policy
-  --test=expr	-- eval "$expr $item" || skip item
-  --skip=[silent|warn|fail]	-- skip policy
-  --sep=X	-- use character X instead of default :
-  --dots=[no|ok|end] policy on . items in path
-'
+# ** pathvar_add helper functions
+
+pathvar_add_usage='VAR-NAME [OPTIONS|ITEM]...'
 pathvar_add_purpose='add new components to a PATH-like variable'
+pathvar_add_options='
+	-a # add at beginning
+	-z # add at end (the default)
+	-e # following items exist or item skipped
+	-E # same with warning
+	-f # following items exist as regular files or item skipped
+	-F # same with warning
+	-d # following items exist as directory or item skipped
+	-D # same with warning
+	-s # strict: any skip becomes transaction failure
+	-S # unstrict: back to silent or warning
+	-w # warn and unstrict: any skip generates a warning
+	-W # unwarn and unstrict: back to silent skipping
+	-v # write result back to shell var
+	-V # write result to environment var
+	--sep=X  # use character X instead of default :
+	--test=expr  # eval "$expr $item" || skip item
+	--dots=[no|ok|end]  # policy on '.' items
+	--skip=[silent|warn|fail]  # skip policy
+	--dedup=[no|silent|warn|fail]  # deduplication policy
+'
 pathvar_add_version='$Id$'
 
-enum_set error-array array key given-value allowed_value...
-enum_set() {
-    local -n e="$1"
-    local -n a="$2"
-    local k="$3" v="$4"; shift 4
-    for x; do
-        [[ "$v" == $x ]] && {
-            a[$k]="$v" ; return 0
-        }
-    done
-    e+=("no $k option of $v")
-    return 1 
-}
-
-# Update associative array of current options
-# pathvar_add_opt associative-array-name arguments
-# at least the first argument should start with 
-# returns number of arguments to skip
-# pathvar_add_opt error_array settings_array
-pathvar_add_opt(
-    local -n e="$1"; shift
-    local -n a="$1"; shift
+# pathvar_add_opt err_cnt msg_array option_hash option_arg
+# Update associative array of current options.
+# The option_arg should either be
+#    -- followed by a long option
+#    - followed by (possibly multiple) single letter option(s)
+# Returns 1 if processing should stop, 0 if processing should continue
+pathvar_add_opt() {
+    local -n c="$1"; shift
+    local -n m="$1"; shift
+    local -n o="$1"; shift
+    >&2 echo "path_add_opt: $1"
     case "$1" in
-        (--version) echo "Version: $pathvar_add_version"; return 0 ;;
-        (--usage) echo "Usage: $pathvar_add_usage"; return 0 ;;
-        (--help) echo -n "$pathvar_add_usage$pathvar_add_options"; return 0 ;;
-        (--sep=?) a[sep]="${1#*=}"; return 0 ;;
-        (--dots) enum_set e a dots "${1#*=}" no ok end; return 0 ;;
-        (--test=) unset a[test]; return 0 ;;
-        (--test=*) set a[test]="${1#*=}"; return 0 ;;
-        (--dedup=) enum_set e a dedup "${1#*=}" no silent warn fail;;
-        (--skip=) enum_set e a skip "${1#*=}" silent warn fail;;
-        (-*) OPTIND=0
-             while getopts ":az.efdWD:E" myopt;  do
+        (--version) echo "Version: $pathvar_add_version"
+                    return 1 ;;
+        (--usage) printf 'Usage: %s %s\n' "${o[fn_name]}" "$pathvar_add_usage" 
+                  return 1 ;;
+        (--help)
+            printf 'Usage: %s %s\n' "${o[fn_name]}" "$pathvar_add_usage" 
+            printf 'Purpose: %s\n' "$pathvar_add_purpose" 
+            printf 'Options:%s' "$pathvar_add_options"
+            return 1 ;;
+        (--sep=?) o[sep]="${1#*=}"
+         return 0 ;;
+        (--dots=*) enum_set c m o dots "${1#*=}" no ok end
+                   return 0 ;;
+        (--test=*) unset o[test]
+                   return 0 ;;
+        (--test=*) set o[test]="${1#*=}"
+                   return 0 ;;
+        (--dedup=*) enum_set c m o dedup "${1#*=}" no silent warn fail
+                    return 1 ;;
+        (--skip=*) enum_set c m o skip "${1#*=}" silent warn fail
+                   return 1 ;;
+        (--*) error_accum c m No long option "$1"
+              return 1 ;;
+        (-*) OPTIND=0  OPTERR=0
+             while getopts "azeEfFdDsSwWvV" myopt "$1";  do
                  case "$myopt" in
-                     (a) a[a]=1 ;;
-                     (z) a[a]=0 ;;
-                     (e) test_to a e ;;
-                     (E) test_to a e ; a[warn]=1 ;;
-                     (f) test_to a f ;;
-                     (F) test_to a f ; a[warn]=1 ;;
-                     (d) test_to a d ;;
-                     (D) test_to a d ; a[warn]=1 ;;
-                     (s) a[strict]=1 ;;
-                     (S) a[strict]=0 ;;
-                     (w) a[warn]=1 ;;
-                     (W) a[warn]=0 ;;
-                     (v) a[var]=0 ;;
-                     (V) a[env]=0 ;;
-                     ('?') e+("Bad option $myopt; usage: $pathvar_add_usage")
-                           return 1 ;;
+                     (a) o[a]=1 ;;
+                     (z) o[a]=0 ;;
+                     (e) test_to c m o e ;;
+                     (E) test_to c m o e ; o[warn]=1 ;;
+                     (f) test_to c m o f ;;
+                     (F) test_to c m o f ; o[warn]=1 ;;
+                     (d) test_to c m o d ;;
+                     (D) test_to c m o d ; o[warn]=1 ;;
+                     (s) o[strict]=1 ;;
+                     (S) o[strict]=0 ;;
+                     (w) o[warn]=1 ;;
+                     (W) o[warn]=0 ;;
+                     (v) o[var]=1 ;;
+                     (V) o[env]=1 ;;
+                     ('?') error_accum c m "No option -$OPTARG";;
                  esac
-             done ; return 0 ;;
-        *)	e+=("no option(s) $1"); return 1 ;;
+             done ;;
+        *) error_accum c m "no option(s) $1" ;;
     esac
-)
-
-# initialize pathvar_add options
-pathvar_add_option_init() {
-    local -a e
-    local -n a="$1"
-    for o in -zw; do 
-        pathvar_add_opt e a "$o"
-    done
+    return 0
 }
 
-pathvar_error() {
-    local -n c="1"
-    local -n e="$2"
-    shift 2
-    let ++c
-    e+=("error: $*")
-}
+# ** pathvar_add
 
-pathvar_warn() {
-    local -n e="$2"; shift
-    e+=("warning: $*")
-}
+# pathvar_add is not really supposed to be called directly.
+# Instead create wrapper functions as in Porcelein below.
 
+# pathvar_add path_string_var option-hash options-and-items...
 function pathvar_add {
-    local fn_name='pathvar_add'
+    # pva_* variables passed by name and received with -n!
     local path_var_name="$1"
-    local -n path_var="$1" ; shift
-    local -a e                  # error messages
-    local -A a;                 # current options
+    local -n pva_path_str="$1"  # path as delimited string
+    local -n pva_options="$2";  # options as we go along
+    shift 2
+    local fn_name="${pva_options[fn_name]:-pathvar_add}"
+    declare -g pva_nerrs=0      # error count
+    declare -ga pva_msgs=( )    # error and warning messages
     local -a before             # items to add in front
+    declare -ga pva_middle      # for original items
     local -a after              # items to add at end
-    local -a input              # items before deduping
-    local -a output             # items after deduping
-    local x result err_cnt=0 dot_cnt=0
-    pathvar_add_option_init a
+    declare -ga pva_input       # all items before deduping
+    declare -ga pva_output      # remaining items after deduping
+    local item option_arg x result dot_cnt=0
     for item; do
         case "$item" in
-            (-*) path_add_opt e a "$item" ;;
-            (*) if ! test_from a "$item"; then
-                    x="${a[test]} $item is false"
-                    if (( ${a[strict]} )); then
-                        pathvar_error err_cnt e "$x"
-                    elif (( ${a[warn] })); then
-                        pathvar_warn e "$x"
+            (-*) pathvar_add_opt pva_nerrs pva_msgs pva_options "$item" ||
+                       return 2
+                 # uncomment for debug tracing:
+                 >&2 declare -p "${!pva_options}"
+                 ;;
+            (*) if ! test_from pva_options "$item"; then
+                    x="${pva_options[test]} $item is false"
+                    if (( ${pva_options[strict]} )); then
+                        error_accum pva_nerrs pva_msgs "$x"
+                    elif (( ${pva_options[warn] })); then
+                        warn_accum pva_msgs "$x"
                     fi
                 else
-                    if [[ "{a[dots]}" != ok ]] && [[ "$item]" == . ]]; then
+                    if [[ $"{pva_options[dots]}" != ok ]] && [[ "$item" == . ]]; then
                         let ++dot_cnt
-                    elif (( a{[a]} )); then
+                    elif (( ${pva_options[a]} )); then
                         before+=("$item")
                     else
                         after+=("$item")
                     fi
                 fi
         esac
+        # uncomment for debug tracing:
+        >&2 declare -p pva_msgs
     done
-    local -a middle
-    split_array_delim_str middle "${a[sep]}" "$path_var"
-    [[ "{a[dots]}" != ok ]] && (( ${#middle[@]} )) && [[ "${middle[-1]}" == . ]] {
+    split_array_delim_str pva_middle "${pva_options[sep]:-:}" "$pva_path_str"
+    >&2 declare -p before
+    >&2 declare -p pva_middle
+    >&2 declare -p after
+    [[ "${pva_options[dots]}" != ok ]]&&(( ${#pva_middle[@]} ))&&[[ "${pva_middle[-1]}" == . ]]&&{
         let ++dot_cnt
-        unset middle[-1]
+        unset pva_middle[-1]
     }
-    input=( "${before[@]}" "${middle[@]}"   "${after[@]}"  )
-    [[ "{a[dots]}" == end ]] && (( dot_cnt )) &&
+    pva_input=( "${before[@]}" "${pva_middle[@]}"   "${after[@]}"  )
+    [[ "${pva_options[dots]}" == end ]] && (( dot_cnt )) &&
         input+=('.')
-    if [[ ${a[dedup]} == no ]]
-    then output=( "${input[@]}" )
-    else pathvar_dedup_array input output
+    if [[ "${pva_options[dedup]}" == no ]]
+    then pva_output=( "${pva_input[@]}" )
+    else dedup_array pva_input pva_output
     fi
-    (( ${#input[@]} !=  ${#output[@]} )) && {
+    (( ${#pva_input[@]} !=  ${#pva_output[@]} )) && {
         x="found duplicates"
-        [[ ${a[dedup]} == fail ]] && pathvar_error err_cnt e "x"
-        [[ ${a[dedup]} == warn ]] && pathvar_warn e "x"
+        [[ ${pva_options[dedup]} == fail ]] && error_accum pva_nerrs pva_msgs "x"
+        [[ ${pva_options[dedup]} == warn ]] && warn_accum pva_msgs "x"
     }
-    # Output any errors or warnings
-    for x in "${e[@]}"; do
+    # Pva_Output any error or warning messages
+    for x in "${pva_msgs[@]}"; do
         >&2 printf "%s %s\n" "$fn_name" "$x"
     done
-    (( err_cnt )) && {
-        >&2 printf "Exiting with %d errors!\n" "$err_cnt"
-        exit 2
+    (( pva_nerrs )) && {
+        >&2 printf "Aborting with %d errors!\n" "$pva_nerrs"
+        return 1
     }
-    result=$( join_delim_args "${a[sep]}" "${output[@]}" )
-    (( a{[var]} )) && path_var="$result"
-    (( a{[env]} )) && export path_var="$result"
-    ! (( a{[var]} )) && ! (( a{[env]} )) && printf "%s\n" "$result"
+    result=$( join_delim_args "${pva_options[sep]:-:}" "${pva_output[@]}" )
+    (( ${pva_options[var]} )) && pva_path_str="$result"
+    (( ${pva_options[env]} )) && export pva_path_str="$result"
+    ! (( ${pva_options[var]} )) && ! (( ${pva_options[env]} )) && printf "%s\n" "$result"
     (( $export )) && export "$var"
 }
 
-path_add() { pathvar_add PATH -d. "$@" ; }
-manpath_add() { pathvar_add MANPATH -d. "$@" ; }
-libpath_add() { pathvar_add LD_LIBRARY_PATH -d. "$@" ; }
+# ** Porcelein for pathvar_add
+
+path_add() {
+    declare -gA path_add_options=( [fn_name]="path_add")
+    pathvar_add PATH path_add_options --dots=end -zDV "$@"
+}
+manpath_add() {
+    declare -gA manpath_add_options=( [fn_name]="manpath_add")
+    pathvar_add MANPATH manpath_add_options --dots=no -zDV "$@"
+}
+libpath_add() {
+    declare -gA libpath_add_options=( [fn_name]="libpath_add")
+    pathvar_add LD_LIBRARY_PATH libpath_add_options --dots=no -zFV "$@"
+}
 
 export -f pathvar_add path_add manpath_add libpath_add
 
@@ -260,7 +316,7 @@ pathvar_show() {
   case $# in
     1) pathvar_show_ $1 | fmt ;;
     2) pathvar_show_ $1 | pr -$2 -t ;;
-    *) usage "pathvar_show path_var [ columns ]" ;;
+    *) usage "pathvar_show pva_path_str [ columns ]" ;;
   esac
 }
 
@@ -270,8 +326,24 @@ libpath_show() { pathvar_show LD_LIBRARY_PATH; }
 
 export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
-# WISHLIST
+# ** End Notes
 
+# *** Implementation Notes
+
+# This was to be my first Bash Script to make good use of the relatively new
+# =local -n=...= feature which was inspired by ksh's =nameref=. Alas, the Bash
+# =-n= feature is horribly broken. The variable name passed by the caller will
+# conflict with any variable of the same name in the receiver!!! Still, given
+# Bash, =-n= is really the only reasonable way to pass arrays, so we're just
+# going to have to make all of the variable names which are being passed unique.
+# The best way to do that is to prefix them with the name of their functions.
+# The receiving names can be short.
+
+# *** WISHLIST
+
+# Adapting to Wrapper Functions
+## Wrapper function could pass its name to pathvar_add
+## As part of the initial option hash!
 # deleting items
 ## a function to delete a given path component if it exists
 ## a function to delete all path components patching a pattern
