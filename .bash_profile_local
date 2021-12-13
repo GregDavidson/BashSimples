@@ -4,4 +4,4 @@
 if_src_dir ~/.bash_profile_local.d
 
 # This is a good place to add favorites to your PATH variables, e.g.
-# path_add -aD ~/[Bb]in ~/SW/*/[Bb]in ~/.cargo/bin /usr/local/SW/*/[Bb]in
+# path_add -aDV ~/[Bb]in ~/SW/*/[Bb]in ~/.cargo/bin /usr/local/SW/*/[Bb]in
