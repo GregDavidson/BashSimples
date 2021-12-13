@@ -9,7 +9,7 @@
 # Creative Commons Attribution 4.0 International License
 # http://creativecommons.org/licenses/by/4.0.
 
-# See Implementation Notes at bottom
+# See IMPLEMENTATION NOTES at bottom
 # See WISHLIST at bottom
 
 # Requires simples package.
@@ -211,7 +211,7 @@ pathvar_add_opt() {
 # ** pathvar_add
 
 # pathvar_add is not really supposed to be called directly.
-# Instead create wrapper functions as in Porcelein below.
+# Instead create wrapper functions as in Porcelain below.
 
 # pathvar_add path_string_var option-hash options-and-items...
 function pathvar_add {
@@ -291,19 +291,23 @@ function pathvar_add {
     (( $export )) && export "$var"
 }
 
-# ** Porcelein for pathvar_add
+# ** Porcelain for pathvar_add
 
 path_add() {
     declare -gA path_add_options=( [fn_name]="path_add")
     pathvar_add PATH path_add_options --dots=end -zDV "$@"
 }
 manpath_add() {
-    declare -gA manpath_add_options=( [fn_name]="manpath_add")
+    declare -gA path_add_options=( [fn_name]="manpath_add")
     pathvar_add MANPATH manpath_add_options --dots=no -zDV "$@"
 }
+infopath_add() {
+    declare -gA path_add_options=( [fn_name]="infopath_add")
+    pathvar_add INFOPATH manpath_add_options --dots=no -zDV "$@"
+}
 libpath_add() {
-    declare -gA libpath_add_options=( [fn_name]="libpath_add")
-    pathvar_add LD_LIBRARY_PATH libpath_add_options --dots=no -zFV "$@"
+    declare -gA path_add_options=( [fn_name]="libpath_add")
+    pathvar_add LD_LIBRARY_PATH libpath_add_options --dots=no -zDV "$@"
 }
 
 export -f pathvar_add path_add manpath_add libpath_add
@@ -326,9 +330,9 @@ libpath_show() { pathvar_show LD_LIBRARY_PATH; }
 
 export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
-# ** End Notes
+# ** END NOTES
 
-# *** Implementation Notes
+# *** IMPLEMENTATION NOTES
 
 # This was to be my first Bash Script to make good use of the relatively new
 # =local -n=...= feature which was inspired by ksh's =nameref=. Alas, the Bash
