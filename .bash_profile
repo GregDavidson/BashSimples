@@ -61,7 +61,7 @@ simple_require paths
 
 # To keep this file generic, we'll do our things here:
 
-if_src $LOGIN_INITS $HOME/.bash_profile_local"
+if_src $LOGIN_INITS "$HOME/.bash_profile_local"
 
 # ** Interactive Shell Features
 
