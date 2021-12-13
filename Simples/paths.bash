@@ -56,7 +56,7 @@ enum_set() {
 
 # Bash requires * here instead of @!
 join_delim_args() {
-    local IFS="$1"; shift; echo "$*"
+    local IFS="$1"; shift; printf '%s\n' "$*"
 }
 export -f join_delim_args
 
@@ -158,9 +158,9 @@ pathvar_add_opt() {
     local -n c="$1"; shift
     local -n m="$1"; shift
     local -n o="$1"; shift
-    >&2 echo "path_add_opt: $1"
+    # >&2 echo "path_add_opt: $1"
     case "$1" in
-        (--version) echo "Version: $pathvar_add_version"
+        (--version) printf 'Version: %s\n' "$pathvar_add_version"
                     return 1 ;;
         (--usage) printf 'Usage: %s %s\n' "${o[fn_name]}" "$pathvar_add_usage" 
                   return 1 ;;
@@ -234,13 +234,13 @@ function pathvar_add {
             (-*) pathvar_add_opt pva_nerrs pva_msgs pva_options "$item" ||
                        return 2
                  # uncomment for debug tracing:
-                 >&2 declare -p "${!pva_options}"
+                 # >&2 declare -p "${!pva_options}"
                  ;;
             (*) if ! test_from pva_options "$item"; then
                     x="${pva_options[test]} $item is false"
                     if (( ${pva_options[strict]} )); then
                         error_accum pva_nerrs pva_msgs "$x"
-                    elif (( ${pva_options[warn] })); then
+                    elif (( ${pva_options[warn]} )); then
                         warn_accum pva_msgs "$x"
                     fi
                 else
@@ -254,12 +254,12 @@ function pathvar_add {
                 fi
         esac
         # uncomment for debug tracing:
-        >&2 declare -p pva_msgs
+        # >&2 declare -p pva_msgs
     done
     split_array_delim_str pva_middle "${pva_options[sep]:-:}" "$pva_path_str"
-    >&2 declare -p before
-    >&2 declare -p pva_middle
-    >&2 declare -p after
+    # >&2 declare -p before
+    # >&2 declare -p pva_middle
+    # >&2 declare -p after
     [[ "${pva_options[dots]}" != ok ]]&&(( ${#pva_middle[@]} ))&&[[ "${pva_middle[-1]}" == . ]]&&{
         let ++dot_cnt
         unset pva_middle[-1]
@@ -314,7 +314,7 @@ export -f pathvar_add path_add manpath_add libpath_add
 
 # make viewing paths easier
 
-pathvar_show_() { echo "${!1}" | tr : '\012' | sed "s:^$HOME:\~:"; }
+pathvar_show_() { printf '%s\n'  "${!1}" | tr : '\012' | sed "s:^$HOME:\~:"; }
 
 pathvar_show() {
   case $# in
