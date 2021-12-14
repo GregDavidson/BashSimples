@@ -26,7 +26,7 @@ following/ these provided scripts:
 
 ** Simples System
    
-- Simples/ ::	a system to manage shell extension modules
+- /Simples/ ::	a system to manage shell extension modules
 
 The Simples modules allow you to selectively add desirable functionality to your
 Bash environment.
@@ -61,7 +61,7 @@ shells on different Unix-like platforms.
 | ksh93   | latest ksh        | Better             | Finally Open Source!    | Dated                       |
 | zsh     | Z Shell           | Features Galore    | Many wonderful features | Too complex for some!       |
 
-At the time this project was begun, the David Korn's wondeful =ksh= was still
+At the time this project was begun, the David Korn's wonderful =ksh= was still
 proprietary and =zsh= was obscure - well, it was obscure to me! I found myself
 having to constantly adapt to the annoying differences and missing features of
 the shells I was using. I couldn't write good scripts which would work in any
@@ -103,7 +103,7 @@ the same tool for issuing interactive commands and writing scripts.
 
 I consider the =sh= and =pdksh= versions of the /Simples System/ to be obsolete.
 I have no plans of porting the /Simples System/ to =zsh=. I have no interest in
-non-POSIX-complient shells - sorry tcsh and fish! So I have no ambitious plans
+non-POSIX-compliant shells - sorry tcsh and fish! So I have no ambitious plans
 for the /Simples System/.
 
 I will try to keep the Bash Version of the /Simples System/ safe from /software
