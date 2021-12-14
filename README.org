@@ -44,30 +44,29 @@ Notes:
 
 ** STORY
 
-Late last millennium (during the years beginning with a 1 instead of a 2) the
+Late last millennium (the 4-digit years beginning with a 1 instead of a 2) the
 author found himself needing to use several similar but annoyingly different
 shells on different Unix-like platforms.
 
-| Program  | Name              | What is was about     | Pros                    | Cons                        |
-|----------+-------------------+-----------------------+-------------------------+-----------------------------|
-| sh       | Mashey shell      | Early Unix shell      | better than nothing     | mediocre all around         |
-| sh       | Bourne Shell      | More Elegant Shell    | Good for Scripting      | mediocre at interactive use |
-| csh      | C Shell           | Nicer Shell           | OK for scripting        | Better for interactive use  |
-| AT&T ksh | Korn Shell        | Better all around     | Great scripting         | AT&T Proprietary :-(        |
-| pdksh    | Public Domain ksh | Subset of ksh         | Good for Scripting      | OK for interactive use      |
-| POSIX    | Standard shell    | Subset of ksh         | Helps productivity      | Missing useful features     |
-| Bash     | Gnu Bash          | Power & Freedom       | Ok for scripting        | Good for interactive use    |
-| tcsh     | T-Shell           | a better csh          | Some nice features      | Not POSIX Compliant         |
-| ksh93    | latest ksh        | better & Open Source! | Great scripting         | Dated                       |
-| zsh      | Z Shell           | Features Galore       | Many wonderful features | Lots of complexity          |
+| Program | Name              | What is was about  | Pros                    | Cons                        |
+|---------+-------------------+--------------------+-------------------------+-----------------------------|
+| sh      | Mashey shell      | Early Unix shell   | better than nothing     | mediocre all around         |
+| sh      | Bourne Shell      | More Elegant Shell | Good for Scripting      | mediocre at interactive use |
+| csh     | C Shell           | Nicer Shell        | OK for scripting        | Better for interactive use  |
+| ksh     | AT&T Korn Shell   | Better all around  | Great scripting         | AT&T Proprietary :-(        |
+| pdksh   | Public Domain ksh | Subset of AT&T ksh | Good for Scripting      | OK for interactive use      |
+| POSIX   | shell standard    | Subset of pdksh    | Enables portability     | Missing useful features     |
+| Bash    | Gnu Bash          | Power & Freedom    | Ok for scripting        | Good for interactive use    |
+| tcsh    | T-Shell           | a better csh       | More nice features      | Not POSIX Compliant         |
+| ksh93   | latest ksh        | Better             | Finally Open Source!    | Dated                       |
+| zsh     | Z Shell           | Features Galore    | Many wonderful features | Too complex for some!       |
 
-
-At the time this project was begun, the full =ksh= was still proprietary and
-=zsh= was still obscure - well, it was obscure to me! I found myself having to
-constantly adapt to the annoying differences and missing features of the shells
-I was using. I couldn't write good scripts which would work in any shell.
-Fortunately, most of the shells supported /Shell Functions/, i.e. they were
-/programmable/ - so I should be able to do something about this mess!
+At the time this project was begun, the David Korn's wondeful =ksh= was still
+proprietary and =zsh= was obscure - well, it was obscure to me! I found myself
+having to constantly adapt to the annoying differences and missing features of
+the shells I was using. I couldn't write good scripts which would work in any
+shell. Fortunately, most of the shells supported /Shell Functions/, i.e. they
+were /programmable/ - so I should be able to do something about this mess!
 
 I began the /Simples Project/ by writing a set of shell functions to deal with
 common issues in scripting, e.g. managing lists. I wrote a version of those
