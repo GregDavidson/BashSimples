@@ -70,7 +70,9 @@ split_array_delim_str() {
 export -f split_array_delim_str 
 
 # dedup_array input_array output_array
-# warning: replaces output_array!
+# warnings:
+#   replaces output_array!
+#   keeps the first instance!!
 dedup_array() {
     local -n dedup_array_input="$1"
     local -n dedup_array_output="$2"
@@ -90,7 +92,7 @@ pathvar_dedup() {
     local -n pathvar_dedup="$1"
     local -a input
     local -a output
-    split_array_delim_str input : pathvar_dedup
+    split_array_delim_str input : $pathvar_dedup
     dedup_array input output
     pathvar_dedup=$(join_delim_args : "${output[@]}")
 }
@@ -298,15 +300,15 @@ path_add() {
     pathvar_add PATH path_add_options --dots=end -zDV "$@"
 }
 manpath_add() {
-    declare -gA path_add_options=( [fn_name]="manpath_add")
+    declare -gA manpath_add_options=( [fn_name]="manpath_add")
     pathvar_add MANPATH manpath_add_options --dots=no -zDV "$@"
 }
 infopath_add() {
-    declare -gA path_add_options=( [fn_name]="infopath_add")
-    pathvar_add INFOPATH manpath_add_options --dots=no -zDV "$@"
+    declare -gA infopath_add_options=( [fn_name]="infopath_add")
+    pathvar_add INFOPATH infopath_add_options --dots=no -zDV "$@"
 }
 libpath_add() {
-    declare -gA path_add_options=( [fn_name]="libpath_add")
+    declare -gA libpath_add_options=( [fn_name]="libpath_add")
     pathvar_add LD_LIBRARY_PATH libpath_add_options --dots=no -zDV "$@"
 }
 
