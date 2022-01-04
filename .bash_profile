@@ -53,8 +53,10 @@ simple_require paths
 
 # ** Source System and User Specific Content
 
-# To add your favorite paths, consider this command:
+# To add your favorite paths, consider this 3-step command:
+# shopt -s nullglob
 # path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
+# shopt -u nullglob
 
 # Setup any subsystems which need environment variable support
 # e.g. GUIX, mmh, etc.
