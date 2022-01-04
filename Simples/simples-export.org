@@ -1,0 +1,39 @@
+* Simples Export
+  
+The exported version of the Simples System
+
+When the original Simples System was designed
+- Bash had no ability to export functions
+- Bash had no associative arrays
+It's still the case that
+- bash arrays can't be exported
+
+Bash has changed so much since then that
+- The Simples System could do with a rewrite
+  - Simple Paths /has/ had a rewrite since then!
+
+Because
+- bash CAN export functions
+- The Simples System doesn't use global array variables
+      - But simple paths now does - oops!
+- We can create an exported version of /simples/
+      - And rewrite /simple paths/ to be exportable
+
+There is now a file:Makefile
+to automatically build export source files
+from original source files!
+
+Caveats: There must be no 
+- Multiple global variables on a line
+- Global array variables of either kind
+
+** To do: 
+   
+- Differentiate between
+      - =simples_exported= which have been exported
+      - =simples_provided= which will be lost
+- Ensure that =simples_provided= is NOT exported!
+      - Just put it on the right, i.e. =x=xval= =y=yval=
+- Maybe write =simple_export= as an alternative to =simple_require=
+- Revise /simple paths/ to be exportable
+- Ensure that all /simples/ are exportable
