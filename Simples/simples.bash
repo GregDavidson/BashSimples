@@ -141,7 +141,6 @@ simple_error_msg() {
 }
 
 simple_error() { >&2 simple_error_msg "$@"; }
-
 simple_exit() { simple_msg "${@:2}"; exit $1; }
 simple_exitor() { simple_error "${@:2}"; exit $1; }
 
