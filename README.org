@@ -24,6 +24,15 @@ following/ these provided scripts:
   Bin/install-dotfiles
 #+end_src
 
+An example path setting suggests a sophisticated directory structure for added
+software:
+#+begin_src bash
+# shopt -s nullglob
+# path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
+# shopt -u nullglob
+#+end_src
+This will require another document to fully explain it!!!
+
 ** Simples System
    
 - /Simples/ ::	a system to manage shell extension modules
