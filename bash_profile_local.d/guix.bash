@@ -1,20 +1,50 @@
 # login time guix setup
 # Sourced by ~/.bash_profile_local
 
-if [ -e ~/.guix-profile ]; then
+export GUIX_PROFILE=~/.guix-profile
+if [ -e "$GUIX_PROFILE" ]; then
 
-export GUIX_PROFILE="$HOME/.guix-profile"
-. "$GUIX_PROFILE/etc/profile"
+# GUIX's profile puts its path elements in front of 
+# other elements and it doesn't check if they  are
+# already there, creating duplicates if they are.
 
-# Alas, GUIX has likely prepended its directories onto paths
-# which already contained them.  Let's dedupe any of these
+# GUiX also puts more programs in its bin directory
+# than I asked for and some of them are NOT my
+# preferred version of such!
 
-guix_env_path_vars() {
-  local g="${GUIX_PROFILE//\//\\/}"
-  local h="${g//\./\\.}"
-  env | sed -e '/^[A-Z_]*PATH=/!d' -e "/[=:]$h\\//"'!d' -e 's/=.*//'
+# There's also something in the current
+#   January 2022
+# guix profile which is causing trouble!!
+#   A broken PATH
+#   Shell errors before each prompt
+#   Login problems
+
+# And guix put a system profile in
+# /etc/profile.d which caused trouble!!
+#   I've removed it!!
+
+# Let's clone and tame the guix profile
+#   ~/.guix-profile/etc/profile
+# and assume the maintenance burden for it!!
+
+# I've put links to the guix programs I like in my directory
+#   ~/Bin.guix
+
+path_add "$GUIX_PROFILE/bin" -a ~/Bin.guix
+
+emacs_load_path_add () { 
+    declare -gA emacs_load_path_add_options=([fn_name]="emacs_load_path_add");
+    pathvar_add EMACSLOADPATH emacs_load_path_add_options --dots=no -zDV "$@"
 }
 
-dedup_env_paths XDG_DATA_DIRS $(guix_env_path_vars)
+info_load_path_add () { 
+    declare -gA info_load_path_add_options=([fn_name]="emacs_load_path_add");
+    pathvar_add INFOLOADPATH info_load_path_add_options --dots=no -zDV "$@"
+}
+
+
+guix_emacs_version=$(emacs --batch --eval '(prog1 (eval-expression emacs-version) (kill-emacs))')
+emacs_load_path_add "$GUIX_PROFILE/share/emacs/site-lisp" "$GUIX_PROFILE/share/emacs/$guix_emacs_version/lisp"
+info_load_path_add "$GUIX_PROFILE/share/info"
 
 fi
