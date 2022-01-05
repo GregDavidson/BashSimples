@@ -24,7 +24,7 @@ Because
       - And slightly revise /simple paths/ to be /exportable/
 
 There is now a [[file:Makefile][Makefile]] to automatically build
-export source files from original source files!
+/export source files/ from /original source files/!
 
 ** Caveats
 
