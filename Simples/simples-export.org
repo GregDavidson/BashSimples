@@ -5,7 +5,7 @@ The /exported/ version of the /Simples System/
 ** Historical Context
 
 When the original /Simples System/ was designed
-- =bash= had no ability to export /functions/
+- =bash= had no ability to =export= /functions/
 - =bash= had no /associative arrays/
 It's still the case that
 - =bash= /arrays/ can't be /exported/
