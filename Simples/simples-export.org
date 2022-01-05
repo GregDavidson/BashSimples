@@ -1,39 +1,47 @@
 * Simples Export
   
-The exported version of the Simples System
+The /exported/ version of the /Simples System/
 
-When the original Simples System was designed
-- Bash had no ability to export functions
-- Bash had no associative arrays
+** Historical Context
+
+When the original /Simples System/ was designed
+- =bash= had no ability to export /functions/
+- =bash= had no /associative arrays/
 It's still the case that
-- bash arrays can't be exported
+- =bash= /arrays/ can't be /exported/
 
-Bash has changed so much since then that
-- The Simples System could do with a rewrite
-  - Simple Paths /has/ had a rewrite since then!
+=bash= has changed so much since then that
+- The /Simples System/ could do with a rewrite
+  - Simple Paths /has/ had a major rewrite since then!
+
+** Opportunity
 
 Because
-- bash CAN export functions
-- The Simples System doesn't use global array variables
-      - But simple paths now does - oops!
-- We can create an exported version of /simples/
-      - And rewrite /simple paths/ to be exportable
+- =bash= /can/ =export= /functions/
+- The /Simples System/ doesn't use /global array variables/
+      - But /simple paths/ now does - oops!
+- We can create an /exported/ version of /simples/
+      - And slightly revise /simple paths/ to be /exportable/
 
-There is now a file:Makefile
-to automatically build export source files
-from original source files!
+There is now a [[file:Makefile][Makefile]] to automatically build
+export source files from original source files!
 
-Caveats: There must be no 
-- Multiple global variables on a line
-- Global array variables of either kind
+** Caveats
 
-** To do: 
-   
+- /Exportable/ /variables/ must be
+      - Scalars
+      - Defined at the beginning of a line
+          - ~^[a-zA-Z][a-zA-Z0-9_]*=~
+- /Exportable/ /functions/ must be
+      - Defined with =()= at the beginning of a line
+          - ~^[a-zA-Z][a-zA-Z0-9_]*()~
+** To Do
+ 
 - Differentiate between
-      - =simples_exported= which have been exported
+      - =simples_exported= which have been /exported/
       - =simples_provided= which will be lost
-- Ensure that =simples_provided= is NOT exported!
+- Ensure that =simples_provided= is *not* /exported/!
       - Just put it on the right, i.e. =x=xval= =y=yval=
 - Maybe write =simple_export= as an alternative to =simple_require=
-- Revise /simple paths/ to be exportable
-- Ensure that all /simples/ are exportable
+- Revise /simple paths/ to be /exportable/
+- Ensure that all /simples/ are /exportable/
