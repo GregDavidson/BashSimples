@@ -30,7 +30,7 @@ There is now a [[file:Makefile][Makefile]] to automatically build
 
 - /Exportable/ /variables/ must be
       - Scalars
-      - Defined at the beginning of a line
+      - Defined with ~=~ at the beginning of a line
           - ~^[a-zA-Z][a-zA-Z0-9_]*=~
 - /Exportable/ /functions/ must be
       - Defined with =()= at the beginning of a line
