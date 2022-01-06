@@ -345,6 +345,17 @@ export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 # The best way to do that is to prefix them with the name of their functions.
 # The receiving names can be short.
 
+# *** TO DO ASAP
+
+- Make pva_options a global from pathvar_add
+- Clear pva_options at start of pathvar_add
+- Save path_var_name in pva_options
+- Simplify the porcelain accordingly!
+    - one less line!
+    - one less argument!
+- Remove all exports
+    - exports will be provided by the Makefile!
+
 # *** WISHLIST
 
 # Adapting to Wrapper Functions
@@ -363,5 +374,5 @@ export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 ## derived paths are constructed from master paths
 # super master paths
 ## multiple paths, e.g. bin, man, lib, etc. generated from one master
-# bash 4.0
+# newer bash version once sufficiently ubiquitous
 ## make any simplifications possible
