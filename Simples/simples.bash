@@ -1,5 +1,8 @@
 #!/bin/bash simples_test.bash
 # * simples.bash - simple mechanisms for better Bash scripts
+
+# ** Header
+
 simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 # Copyright (c) 2008 J. Greg Davidson. This work is licensed under a
@@ -13,10 +16,11 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # shopt -s nullglobshopt -s nullglob
 # shopt -u nullglobshopt -u nullglob
 
-##	** Table of Contents
+# ** Table of Contents
 
 #	Table of Contents
 #	Introduction
+# Feature Assumptions
 #	simple output
 #	join, pad, preargs
 #	error reporting and exiting
@@ -26,7 +30,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	managing global resource dependencies
 #	safely sourcing scripts
 
-##	** Introduction
+# ** Introduction
 
 # This is a Bash port of the simples package developed for the Bourne Shell,
 # Any places where code here will not run under (pd)ksh should be documented!
@@ -40,47 +44,37 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	simples-man.txt		- steps towards a man page
 #	simples-impl-notes.txt	- implementation notes
 
-# ** Dependencies:
+# ** Feature Assumptions
 
 # Assumptions about shell packages (change below, not here!):
 #	simples_bash_suffixes: .bash .kbash .sh
 #	simples_bash_path: $HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples
 
 # Requires the following shell builtins and/or features:
-#	echo -E -e -n
+#	printf
 #	$(( )) and (( )) aka let
 #	[[ ]] - similar to [ ] aka test
-#	set -A array_variable [value...] --- ksh only!!!
-#	array_variable=( value...) --- bash only!!!
+#	set -A array_variable [value...] --- for ksh version
+#	array_variable=( value...) --- for bash version
 #	${array_name[index]} and ${array_name[*]}
-#	typeset -r -i -- aka declare in bash
-#	local -r -i -- aka typeset in ksh
+#	typeset -r -i --- for bash version
+#	local -r -i --- for ksh version
+#	${!var}	--- for bash version
 
-# Customized for Bash using:
-#	${!var}	instead of `simple_get "$var"`
+# ** simple output
 
-# Which are faster in a modern Bash?
-# - aliases or functions
-# - echo or printf
+simple_out() { printf '%q\n' "$*"; }
+simple_out_inline() { printf '%q' "$*"; }
+simple_msg() { >&2 printf '%q\n' "$*"; }
+simple_msg_inline() { >&2 printf '%q' "$*"; }
 
-# Sometimes defining a function with postfix ()
-# gets a syntax error and using the function keyword
-# fixes it!
-
-##	** simple output
-
-simple_out() { printf "%s\n" "$*"; } # { echo -E "$@"; }
-simple_out_inline() { printf "%s" "$*"; } # { echo -En "$@"; }
-simple_msg() { >&2 printf "%s\n" "$*"; } # { >&2 echo -E "$@"; }
-simple_msg_inline() { >&2 printf "%s" "$*"; } # { >&2 echo -En "$@"; }
-
-##	** join, pad, preargs
+# ** join, pad, preargs
 
 # simple_join1 DELIMTER [WORD...]
 # DELIMITER must be a single character or an empty string
 simple_join1() {
     local IFS="$1" ; shift
-    simple_out "$*"
+    printf '%s' "$*"
 }
 
 # simple_join DELIMITER [WORD...]
@@ -88,16 +82,16 @@ simple_join() {
     case $# in
 			0) return ;;
 			1) return ;;
-			2) echo -n "$2";;
-			3) echo -n "$2$1$3";;
-			4) echo -n "$2$1$3$1$4";;
+			2) printf '%s' "$2";;
+			3) printf '%s%s%s' "$2" "$1" "$3";;
+			4) printf '%s%s%s%s%s' "$2" "$1" "$3" "$1" "$4";;
 			*) local -r d="$1" ; shift
 				 local accum="$1" ; shift
 				 local word
 				 for word; do
 					 accum="${accum}${d}${word}"
 				 done
-				 simple_out_inline "$accum" ;;
+				 printf '%s' "$accum" ;;
 		esac
 }
 
@@ -127,7 +121,7 @@ simple_preargs() {
     return 1
 }
 
-##	** error reporting and exiting
+# ** error reporting and exiting
 
 simple_error_msg() {
     simple_out_inline "${pgm_name:-$0} error"
@@ -155,7 +149,7 @@ simple_show() {                 # for debugging
     simple_msg ''
 }
 
-##	** regexp matching and cutting
+# ** regexp matching and cutting
 
 simple_name_re='[A-Za-z_][A-Za-z0-9_]*'
 simple_name_err='is not a simple name'
@@ -181,7 +175,7 @@ simple_re_cut() { expr "$2" : "${1}\$" ; }
 simple_trim_re='[[:space:]]*\(.*[^[:space:]]\)[[:space:]]*'
 simple_trim() { simple_re_cut "$simple_trim_re" "$@" ; }
 
-##	shell and environment variable management
+# ** shell and environment variable management
 
 # simple_var_exists VARIABLE_NAME -- returns true or false
 simple_var_exists() { [[ -v "$1" ]]; } # bash >= 4.2
@@ -237,7 +231,7 @@ simple_env_default() {
     export "${1}"
 }
 
-##	** lists and sets
+# ** lists and sets
 
 # These are arguably obsoleted by modern Bash arrays
 
@@ -263,54 +257,77 @@ ni_simple_delim_list() {
 #simple_delim_list_prepend DELIMITER LIST ITEM
 simple_delim_list_prepend() {
   case "$2" in
-    ('') simple_out "$3" ;;
-    (*) simple_out "$3$1$2" ;;
+    ('') printf '%s' "$3" ;;
+    (*) printf '%s%s%s' "$3" "$1" "$2" ;;
   esac
 }
 
 #simple_delim_list_append DELIMITER LIST ITEM
 simple_delim_list_append() {
   case "$2" in
-    ('') echo -n "$3" ;;
-    (*) echo -n "$2$1$3" ;;
+    ('') printf '%s' "$3" ;;
+    (*) printf '%s%s%s' "$2" "$1" "$3" ;;
   esac
 }
 
 #simple_delim_set_prepend DELIMITER LIST ITEM
 simple_delim_set_prepend() {
   case "$1$2$1" in
-		(*"$1$3$1"*) echo -n "$2" ;;
-    ("$1$1") echo -n "$3" ;;
-    (*) echo -n "$3$1$2" ;;
+		(*"$1$3$1"*) printf '%s' "$2" ;;
+    ("$1$1") printf '%s' "$3" ;;
+    (*) printf '%s%s%s' "$3" "$1" "$2" ;;
   esac
 }
 
 #simple_delim_set_append DELIMITER LIST ITEM
 simple_delim_set_append() {
   case "$1$2$1" in
-		(*"$1$3$1"*) echo -n "$2" ;;
-    ("$1$1") echo -n "$3" ;;
-    (*) echo -n "$2$1$3" ;;
+		(*"$1$3$1"*) printf '%d' "$2" ;;
+    ("$1$1") printf '%d' "$3" ;;
+    (*) printf '%d%d%d' "$2" "$1" "$3" ;;
   esac
 }
 
-##	** managing global resource dependencies
+# ** managing global resource dependencies
 
-simples_provided='simples'
+# simples_exported will
+#   be exported
+#   contain list of exported simples
+# simples_provided will
+#   NOT be exported
+#   contain a list of all simples sourced by current shell
+#   be a superset of simples_exported
+simples_exported='' simples_provided='simples'
 
 simples() {
-  echo "$simples_provided" | tr ' ' '\n'
+    for s in "$simples_provided"; do
+        printf '%s ' "$s"
+        if in_simple_delim_list ' ' "$simples_exported" "%s"
+        then printf '%s\n' 'exported'
+        else printf '%s\n' 'local'
+        fi
+    done
 }
 
 # simple_provide NAME
 # - register the global availability of resource NAME
 simple_provide() {
- in_simple_delim_list ' ' "$simples_provided" "$1" ||
-   simples_provided="$simples_provided $1"
+    in_simple_delim_list ' ' "$simples_provided" "$1" ||
+        simples_provided="$simples_provided $1"
 }
 simple_provided() { in_simple_delim_list ' ' "$simples_provided" "$1"; }
 
-##	safely sourcing scripts
+# simple_export NAME
+# - register the global availability of resource NAME
+simple_export() {
+    in_simple_delim_list ' ' "$simples_exported" "$1" || {
+        simples_exported="$simples_exported $1"
+        simples_provide "$1"
+    }
+}
+simple_exported() { in_simple_delim_list ' ' "$simples_exported" "$1"; }
+
+# ** safely sourcing scripts
 
 #simple_array ARRAY_NAME [ value... ]
 #simple_array() { set -A "$@"; }	# ksh-specific code!!!
@@ -325,7 +342,7 @@ simple_array() {		# ARRAY_NAME [ value... ]
 simples_bash_suffixes='.bash .kbash .sh'
 simples_bash_path="$HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples"
 
-# simple_source_file SIMPLE_FILENAME
+# simple_source_file SIMPLE_FILENAME [export]
 # returns the filename, if any, which corresponds to the argument
 # with an allowed suffix in one of the allowed directories.
 simple_source_file() {
@@ -333,11 +350,27 @@ simple_source_file() {
     simple_error simple_source_file -- "improper source $1"
 		return 1
   }
-  local d s
+  local d s x dx y dy
   for d in $simples_bash_path; do
 		for s in $simples_bash_suffixes; do
-	    [[ -r "$d/$1$s" ]] && echo "$d/$1$s" && return 0
-		done
+        x="$1$s" 
+        dx="$d/$x" 
+        [[ -r "$dx" ]] &&
+            if [ export != "$2" ]; then
+                printf '%s\n' "$dx" && return 0
+            else
+                y="$1-export$s" 
+                dy="$d/$y" 
+                ! [[ -r "$dy" ]] && make -C "$d" "$y"
+                if [[ -r "$dy" ]]; then
+                    printf '%s\n' "$dy"
+                    return 0
+                else
+                    simple_error simple_source_file -- "cannot make source $dy"
+                    return 1
+                fi
+            fi
+    done
   done
   simple_error simple_source_file -- "no source $1"
   return 1
@@ -380,7 +413,7 @@ simple_require() {
   done
 }
 
-# WISHLIST
+# ** WISHLIST
 
 # Update for Bash Version >= 5
 # Modularize the remainders into separate simples
