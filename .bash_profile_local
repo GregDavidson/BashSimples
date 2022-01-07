@@ -1,7 +1,7 @@
 # ~/.bash_profile_local - system and user variable Bash Profile
 # Sourced by ~/.bash_profile
 
-if_src_dir ~/.bash_profile_local.d
+simple_src_dir ~/.bash_profile_local.d
 
 # This is a good place to add favorites to your PATH variables, e.g.
 # shopt -s nullglob
