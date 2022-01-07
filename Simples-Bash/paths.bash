@@ -347,14 +347,14 @@ export -f pathvar_show_ pathvar_show path_show manpath_show libpath_show
 
 # *** TO DO ASAP
 
-- Make pva_options a global from pathvar_add
-- Clear pva_options at start of pathvar_add
-- Save path_var_name in pva_options
-- Simplify the porcelain accordingly!
-    - one less line!
-    - one less argument!
-- Remove all exports
-    - exports will be provided by the Makefile!
+# - Make pva_options a global from pathvar_add
+# - Clear pva_options at start of pathvar_add
+# - Save path_var_name in pva_options
+# - Simplify the porcelain accordingly!
+#   - one less line!
+#   - one less argument!
+#- Remove all exports
+#  - exports will be provided by the Makefile!
 
 # *** WISHLIST
 
