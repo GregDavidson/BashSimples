@@ -1,0 +1,25 @@
+#!/usr/bin/awk -f
+# format_notes
+
+# Copyright (c) 2008 J. Greg Davidson. This work is licensed under a
+# Creative Commons Attribution 4.0 International License
+# http://creativecommons.org/licenses/by/4.0.
+
+BEGIN{
+    cols=ENVIRON["COLUMNS"]
+    if (cols=="") cols=72
+#    print "format_notes: cols=" cols
+}
+{
+    ++i; printf "%4d\t", i; col=8; field=1
+    while (field <= NF) {
+	printf "%s", $field; col += length($field); field++
+	while (field <= NF && col + length($field) < cols) {
+	    printf " %s", $field; col += length($field) + 1; field++
+	}
+	if (field <= NF) {
+	  printf "\n\t", i; col=8
+	}
+    }
+    printf "\n"
+}
