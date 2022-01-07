@@ -16,20 +16,6 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 # shopt -s nullglobshopt -s nullglob
 # shopt -u nullglobshopt -u nullglob
 
-# ** Table of Contents
-
-#	Table of Contents
-#	Introduction
-# Feature Assumptions
-#	simple output
-#	join, pad, preargs
-#	error reporting and exiting
-#	regexp matching and cutting
-#	shell and environment variable management
-#	lists and sets
-#	managing global resource dependencies
-#	safely sourcing scripts
-
 # ** Introduction
 
 # This is a Bash port of the simples package developed for the Bourne Shell,
@@ -50,7 +36,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	simples_bash_suffixes: .bash .kbash .sh
 #	simples_bash_path: $HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples
 
-# Requires the following shell builtins and/or features:
+# Assumes the following shell builtins and/or features:
 #	printf
 #	$(( )) and (( )) aka let
 #	[[ ]] - similar to [ ] aka test
@@ -61,12 +47,17 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 #	local -r -i --- for ksh version
 #	${!var}	--- for bash version
 
-# ** simple output
+# For anything else, test for it and prepare a fallback!
 
-simple_out() { printf '%q\n' "$*"; }
-simple_out_inline() { printf '%q' "$*"; }
-simple_msg() { >&2 printf '%q\n' "$*"; }
-simple_msg_inline() { >&2 printf '%q' "$*"; }
+# Test if argument is a command
+simple_is_cmd() { type "$1" > /dev/null; }
+
+# ** Simple Output
+
+simple_out() { printf '%s\n' "$*"; }
+simple_out_inline() { printf '%s' "$*"; }
+simple_msg() { >&2 printf '%s\n' "$*"; }
+simple_msg_inline() { >&2 printf '%s' "$*"; }
 
 # ** join, pad, preargs
 
@@ -121,7 +112,7 @@ simple_preargs() {
     return 1
 }
 
-# ** error reporting and exiting
+# ** Error Reporting and Exiting
 
 simple_error_msg() {
     simple_out_inline "${pgm_name:-$0} error"
@@ -149,7 +140,7 @@ simple_show() {                 # for debugging
     simple_msg ''
 }
 
-# ** regexp matching and cutting
+# ** Regexp Matching and Cutting
 
 simple_name_re='[A-Za-z_][A-Za-z0-9_]*'
 simple_name_err='is not a simple name'
@@ -175,7 +166,7 @@ simple_re_cut() { expr "$2" : "${1}\$" ; }
 simple_trim_re='[[:space:]]*\(.*[^[:space:]]\)[[:space:]]*'
 simple_trim() { simple_re_cut "$simple_trim_re" "$@" ; }
 
-# ** shell and environment variable management
+# ** Shell and Environment Variable Management
 
 # simple_var_exists VARIABLE_NAME -- returns true or false
 simple_var_exists() { [[ -v "$1" ]]; } # bash >= 4.2
@@ -185,14 +176,15 @@ simple_get() {
     simple_out "${!1-}"
 }
 
-# simple_var_trace VARIABLE_NAME -- should this variable be traced
-# Redefine this function as needed
-# This is clumsy!!!
-# How about using an associative array instead???
+# simple_var_trace VARIABLE_NAME | {--on | --off} VARIABLE_NAME...
+# should this variable be traced
 simple_var_trace() {
+    declare -gA simple_var_trace
+    local v
     case $1 in
-        (foo_*) return 0;;
-        (*) return 1;;
+        (--on) for v in "${@:2}"; do ${simple_var_trace["$v"]}=1; done ;;
+        (--off) for v in "${@:2}"; do unset ${simple_var_trace["$v"]}; done ;;
+        (*) return (( ${simple_var_trace["$1"]-0}  )) ;;
     esac
 }
 
@@ -205,6 +197,8 @@ simple_set() {
     simple_msg "${pgm_name:-$0} trace: ${name}='${*}'"
   var="$*"
 }
+
+# deviations from simples.sh in next few functions!!!
 
 # simple_cmd_setvar_args: setvar  =  cmd args...
 simple_cmd_setvar_args() { simple_set "$2" "`$1 "${@:3}"`"; }
@@ -231,7 +225,7 @@ simple_env_default() {
     export "${1}"
 }
 
-# ** lists and sets
+# ** Lists and Sets
 
 # These are arguably obsoleted by modern Bash arrays
 
@@ -288,7 +282,46 @@ simple_delim_set_append() {
   esac
 }
 
-# ** managing global resource dependencies
+# Is this still needed??
+#simple_array ARRAY_NAME [ value... ]
+#simple_array() { set -A "$@"; }	# ksh-specific code!!!
+simple_array() {		# ARRAY_NAME [ value... ]
+	  local -n var="$1"
+    var=("${@:2}")
+}
+
+# ** Sourcing Scripts
+
+# simple_src [--count-only] path-to-script
+# Source a file if it exists and has not already been sourced.
+# --count-only --- just boost the count, it was sourced another way
+simple_src() {
+    local count_only=''
+    [ X--count-only == X"$1" ] && {
+        count_only="$1"; shift
+    }
+    declare -gA simple_src_count
+    local f g
+    for f; do
+        if [ ! -f "$f" ]; then
+            >&2 echo "simple_src warning: No file $f!"
+        else
+            g=$(realpath "$f") 
+            { [ -n "$count_only" ] ||
+                 ! (( simple_src_count["$g"] )) ||
+                 . "$g"
+            } && let ++simple_src_count["$g"] 
+        fi
+    done
+}
+
+simple_src_dir() {
+    for d; do
+        [ -d "$d" ] && simple_src "$d"/*
+    done
+}
+
+# ** Querying Simples
 
 # simples_exported will
 #   be exported
@@ -299,42 +332,38 @@ simple_delim_set_append() {
 #   be a superset of simples_exported
 simples_exported='' simples_provided='simples'
 
-simples() {
-    for s in "$simples_provided"; do
-        printf '%s ' "$s"
-        if in_simple_delim_list ' ' "$simples_exported" "%s"
-        then printf '%s\n' 'exported'
-        else printf '%s\n' 'local'
-        fi
-    done
+the_simples_provided() {
+  [ -z "$simples_provided" ] && [ -n "$imples_exported" ] &&
+    simples_provided="$simples_exported"
+  printf "%s" "$simples_provided"
 }
 
-# simple_provide NAME
+simples() {
+  for s in $(the_simples_provided); do
+    if in_simple_delim_list ' ' "$simples_exported" "$s"
+    then printf '%s exported\n' "$s"
+    else printf '%s local\n' "$s"
+    fi
+  done
+}
+
+# simple_provide [--export] NAME
 # - register the global availability of resource NAME
 simple_provide() {
-    in_simple_delim_list ' ' "$simples_provided" "$1" ||
-        simples_provided="$simples_provided $1"
+  local maybe_export=''
+  [ X--export == X"$1" ] && {
+    maybe_export="$1"; shift
+  }
+  in_simple_delim_list ' ' "$(the_simples_provided)" "$1" ||
+    simples_provided="$simples_provided $1"
+  [ -z "$maybe_export" ] || in_simple_delim_list ' ' "$simples_exported" "$1" || {
+    simples_exported="$simples_exported $1"
+  }
 }
-simple_provided() { in_simple_delim_list ' ' "$simples_provided" "$1"; }
-
-# simple_export NAME
-# - register the global availability of resource NAME
-simple_export() {
-    in_simple_delim_list ' ' "$simples_exported" "$1" || {
-        simples_exported="$simples_exported $1"
-        simples_provide "$1"
-    }
-}
+simple_provided() { in_simple_delim_list ' ' "$(the_simples_provided)" "$1"; }
 simple_exported() { in_simple_delim_list ' ' "$simples_exported" "$1"; }
 
-# ** safely sourcing scripts
-
-#simple_array ARRAY_NAME [ value... ]
-#simple_array() { set -A "$@"; }	# ksh-specific code!!!
-simple_array() {		# ARRAY_NAME [ value... ]
-	local -n var="$1"
-  var=("${@:2}")
-}
+# ** Sourcing Simples Scripts
 
 # Anyone who wants to extend theses lists should
 #	simple_require pathvar
@@ -342,21 +371,25 @@ simple_array() {		# ARRAY_NAME [ value... ]
 simples_bash_suffixes='.bash .kbash .sh'
 simples_bash_path="$HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples"
 
-# simple_source_file SIMPLE_FILENAME [export]
+# simple_source_file [--export] SIMPLE_FILENAME
 # returns the filename, if any, which corresponds to the argument
 # with an allowed suffix in one of the allowed directories.
 simple_source_file() {
+  local maybe_export=''
+  [ X--export == X"$1" ] && {
+    maybe_export="$1"; shift
+  }
   match_simple_re "$simple_name_re" "$1" || {
     simple_error simple_source_file -- "improper source $1"
 		return 1
   }
-  local d s x dx y dy
+local d s x dx y dy
   for d in $simples_bash_path; do
 		for s in $simples_bash_suffixes; do
         x="$1$s" 
         dx="$d/$x" 
         [[ -r "$dx" ]] &&
-            if [ export != "$2" ]; then
+            if [ -z "$maybe_export" ]; then
                 printf '%s\n' "$dx" && return 0
             else
                 y="$1-export$s" 
@@ -376,35 +409,45 @@ simple_source_file() {
   return 1
 }
 
-# simple_source SIMPLE_FILENAME...
+# simple_source [--export] SIMPLE_FILENAME...
 # sources (i.e. includes, consults, performs the commands of)
 # the script file corresponding to each SIMPLE_FILENAME
 simple_source() {
+  local maybe_export=''
+  [ X--export == X"$1" ] && {
+    maybe_export="$1"; shift
+  }
   local return=0     # any error will change this!
   local f file
 	for f in "$@"; do
-		file=`simple_source_file "$f"` || return=1
+		file=`simple_source_file $maybe_export "$f"` || return=1
 	done
   (( $return )) && return $return
   for f in "$@"; do
-		. `simple_source_file "$f"`
+		. `simple_source_file $maybe_export "$f"`
 		[[ $? -eq 0 ]] || {
 	    return=$?
 	    simple_error simple_source -- "sourcing $f failed; aborting"
 	    return $return
 		}
-		simple_provide "$f"
+		simple_provide $maybe_export "$f"
   done
 }
 
-# simple_require SIMPLE_FILENAME..
+# simple_require [--export] SIMPLE_FILENAME..
 # sources one or more files in the manner of simple_source above
 # but only if they have not yet been sourced by this process.
 simple_require() {
+  local maybe_export=''
+  [ X--export == X"$1" ] && {
+    maybe_export="$1"; shift
+  }
+  local simples=$(the_simples_provided)
   local return item
 	for item; do
-		in_simple_delim_list ' ' "$simples_provided" "$item" && continue
-		simple_source "$item"
+		in_simple_delim_list ' ' "$simples" "$item" && continue
+		[ -n "$maybe_export" ] && in_simple_delim_list ' ' "$simples_exported" "$item" && continue
+		simple_source $maybe_export "$item"
 		[[ $? -eq 0 ]] || {
 	    return=$?
 	    simple_error simple_require -- "requirement $item not met; aborting"
@@ -418,3 +461,6 @@ simple_require() {
 # Update for Bash Version >= 5
 # Modularize the remainders into separate simples
 # make things more elgant: +Simplicity, +Generality, +Power
+# Bring it back into compatibility with sh version
+# Share some code with sh version??
+# Move sh Simples into same git repository
