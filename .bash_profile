@@ -3,55 +3,24 @@
 #    who: J. Greg Davidson
 #   when: April 1996 - December 2021
 
-# Note: This file should be linked to by ~/.xprofile
-# because some X Display Managers source that at login time.
+# Note: Modern Display Managers and Session Managers won't run BASH so you can't
+# source this. Instead, they use sh or dash which sources ~/.profile or
+# ~/.xprofile and you don't get to export functions to the environment.
+# We're using the bash version of Simples for this file.  You can instead
+# use the sh version for ~/.profile and ~/.xprofile (which can be linked
+# together).  You can put scalar variables into the environment.
 
-# ** a few essential functions
 
-# These could be moved into Simples, but this script deserves some kudos too
+# ** Load the Simples System
 
-# Source a file if it exists and has not already been sourced.
-if_src() {
-    declare -gA if_src_count
-    local f g
-    for f; do
-        if [ ! -f "$f" ]; then
-            >&2 echo "if_src warning: No file $f!"
-        else
-            g=$(realpath "$f") 
-            (( if_src_count["$g"] )) || {
-                . "$g"
-                let ++if_src_count["$g"] 
-            }
-        fi
-    done
-}
-export -f if_src
-
-if_src_dir() {
-    for d; do
-        [ -d "$d" ] && if_src "$d"/*
-    done
-}
-export -f if_src_dir
-
-# Tests if argument is a command
-is_cmd() { type "$1" > /dev/null; }
-export -f is_cmd
-
-# ** Load "Simples" system and path management
-
-# Be sure to install the awesome Simples extensions for Bash!
-
-if_src "${simples_bash-$HOME/Lib/Bash/Simples/simples.bash}"
-[ -n "${simples_provided-}" ] || {
+. "${simples_bash-$HOME/Lib/Bash/Simples-Bash/simples-export.bash}" || {
   >&2 echo ".bash_profile failed to load Simples; exiting"
-  return 1
+  return 1 > /dev/null || exit 1
 }
 
 simple_require paths
 
-# ** Source System and User Specific Content
+# ** Source System and User-Specific Content
 
 # To add your favorite paths, consider this 3-step command:
 # shopt -s nullglob
@@ -63,7 +32,7 @@ simple_require paths
 
 # To keep this file generic, we'll do our things here:
 
-if_src $LOGIN_INITS "$HOME/.bash_profile_local"
+simple_src $LOGIN_INITS "$HOME/.bash_profile_local"
 
 # ** Interactive Shell Features
 
@@ -74,7 +43,7 @@ if_src $LOGIN_INITS "$HOME/.bash_profile_local"
 stty erase '^?' kill '^u' intr '^c' quit '^\' susp '^z'
 
 # Source your favorite login-time scripts
-if_src_dir ~/.bash_profile.d
+simple_src_dir ~/.bash_profile.d
 
 # Source your favorite interactive session features
-if_src "${BASH_ENV:-$HOME/.bashrc}"
+simple_src "${BASH_ENV:-$HOME/.bashrc}"
