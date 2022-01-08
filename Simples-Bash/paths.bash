@@ -314,7 +314,7 @@ pathvar_show() {
   case $# in
     1) pathvar_show_ $1 | fmt ;;
     2) pathvar_show_ $1 | pr -$2 -t ;;
-    *) usage "pathvar_show pva_pathvar [ columns ]" ;;
+    *) usage "pathvar_show PATH_VARIABLE [ columns ]" ;;
   esac
 }
 
