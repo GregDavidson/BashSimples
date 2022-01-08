@@ -24,47 +24,47 @@
 # error_accum error_count message_array message...
 # Increment count and append message to array
 error_accum() {
-    local -n error_accum_count="$1"
-    local -n error_accum_msgs="$2"
-    shift 2
-    let ++error_accum_count
-    error_accum_msgs+=("error: $*")
+local -n error_accum_count="$1"
+local -n error_accum_msgs="$2"
+shift 2
+let ++error_accum_count
+error_accum_msgs+=("error: $*")
 }
 
 # warn_accum message_array message...
 # Append message to array
 warn_accum() {
-    local -n warn_accum_msgs="$1"; shift
-    warn_accum_msgs+=("warning: $*")
+local -n warn_accum_msgs="$1"; shift
+warn_accum_msgs+=("warning: $*")
 }
 
 # enum_set count message_array hash key given-value allowed_value...
 enum_set() {
-    local -n enum_set_count="$1"
-    local -n enum_set_msgs="$2"
-    local -n enum_set_array="$3"
-    local k="$4" v="$5" ; shift 5
-    local x ; for x; do
-        [[ "$v" == $x ]] && {
-            enum_set_array[$k]="$v" ; return 0
-        }
-    done
-    let ++enum_set_count
-    enum_set_msgs+=("no $k option of $v")
-    return 1 
+local -n enum_set_count="$1"
+local -n enum_set_msgs="$2"
+local -n enum_set_array="$3"
+local k="$4" v="$5" ; shift 5
+local x ; for x; do
+    [[ "$v" == $x ]] && {
+        enum_set_array[$k]="$v" ; return 0
+    }
+done
+let ++enum_set_count
+enum_set_msgs+=("no $k option of $v")
+return 1 
 }
 
 # Bash requires * here instead of @!
 join_delim_args() {
-    local IFS="$1"; shift; printf '%s\n' "$*"
+local IFS="$1"; shift; printf '%s\n' "$*"
 }
 export -f join_delim_args
 
 # split_array_delim_str array_name 1-char-delim string
 # Split string into array elements by given delimiter
 split_array_delim_str() {
-    local -n split_array_delim_str_array="$1"   
-    IFS="$2" read -a split_array_delim_str_array <<< "$3"
+local -n split_array_delim_str_array="$1"   
+IFS="$2" read -a split_array_delim_str_array <<< "$3"
 #    IFS="$2" read -a $!1 <<< "$3"
 }
 export -f split_array_delim_str 
@@ -74,14 +74,14 @@ export -f split_array_delim_str
 #   replaces output_array!
 #   keeps the first instance!!
 dedup_array() {
-    local -n dedup_array_input="$1"
-    local -n dedup_array_output="$2"
-    local -A counts
-    local x
-    dedup_array_output=( )
-    for x in "${dedup_array_input[@]}"; do
-        (( counts["$x"]++ )) || dedup_array_output+=("$x")
-    done
+local -n dedup_array_input="$1"
+local -n dedup_array_output="$2"
+local -A counts
+local x
+dedup_array_output=( )
+for x in "${dedup_array_input[@]}"; do
+    (( counts["$x"]++ )) || dedup_array_output+=("$x")
+done
 }
 export -f dedup_array
 
@@ -89,12 +89,12 @@ export -f dedup_array
 # deduplicate : separated path
 # warning: modifies variable!
 pathvar_dedup() {
-    local -n pathvar_dedup="$1"
-    local -a input
-    local -a output
-    split_array_delim_str input : $pathvar_dedup
-    dedup_array input output
-    pathvar_dedup=$(join_delim_args : "${output[@]}")
+local -n pathvar_dedup="$1"
+local -a input
+local -a output
+split_array_delim_str input : $pathvar_dedup
+dedup_array input output
+pathvar_dedup=$(join_delim_args : "${output[@]}")
 }
 export -f pathvar_dedup
 
@@ -104,22 +104,22 @@ export -f pathvar_dedup
 # $ help test | grep '^ *-. *FILE'
 # $ echo [$(help test | sed -n 's/^ *-\(.\) FILE .*/\1/p' | tr -d '\n')]
 test_to() {
-    local -n test_to_cnt="$1"
-    local -n test_to_msgs="$2"
-    local -n test_to_opts="$3"; shift 3
-    [[ "$1" == [abcdefghLkprsSuwxOGN] ]] || {
-        error_accum test_to_cnt test_to_msgs "invalid test_to $*"
-        return 2
-    }
-    test_to_opts[test]="test -$1"
+local -n test_to_cnt="$1"
+local -n test_to_msgs="$2"
+local -n test_to_opts="$3"; shift 3
+[[ "$1" == [abcdefghLkprsSuwxOGN] ]] || {
+    error_accum test_to_cnt test_to_msgs "invalid test_to $*"
+    return 2
+}
+test_to_opts[test]="test -$1"
 }
 export -f test_to
 
 # test_from hash arg
 # evaluate hash[test] with arg
 test_from() {
-    local -n test_from="$1"
-    eval "${test_from[test]} $2"
+local -n test_from="$1"
+eval "${test_from[test]} $2"
 }
 export -f test_from
 
@@ -128,19 +128,19 @@ export -f test_from
 pathvar_add_usage='VAR-NAME [OPTIONS|ITEM]...'
 pathvar_add_purpose='add new components to a PATH-like variable'
 pathvar_add_options='
-	-a # add at beginning
-	-z # add at end (the default)
-	-e # following items exist or item skipped
-	-E # same with warning
-	-f # following items exist as regular files or item skipped
-	-F # same with warning
-	-d # following items exist as directory or item skipped
-	-D # same with warning
-	-s # strict: any skip becomes transaction failure
-	-S # unstrict: back to silent or warning
-	-w # warn and unstrict: any skip generates a warning
-	-W # unwarn and unstrict: back to silent skipping
-	-v # write result back to shell var
+-a # add at beginning
+-z # add at end (the default)
+-e # following items exist or item skipped
+-E # same with warning
+-f # following items exist as regular files or item skipped
+-F # same with warning
+-d # following items exist as directory or item skipped
+-D # same with warning
+-s # strict: any skip becomes transaction failure
+-S # unstrict: back to silent or warning
+-w # warn and unstrict: any skip generates a warning
+-W # unwarn and unstrict: back to silent skipping
+-v # write result back to shell var
 	-V # write result to environment var
 	--sep=X  # use character X instead of default :
 	--test=expr  # eval "$expr $item" || skip item
@@ -164,10 +164,10 @@ pathvar_add_opt() {
     case "$1" in
         (--version) printf 'Version: %s\n' "$pathvar_add_version"
                     return 1 ;;
-        (--usage) printf 'Usage: %s %s\n' "${o[fn_name]}" "$pathvar_add_usage" 
+        (--usage) printf 'Usage: pathvar_add %s %s\n' "${o[pathvar]-PATH_VARIABLE}" "$pathvar_add_usage" 
                   return 1 ;;
         (--help)
-            printf 'Usage: %s %s\n' "${o[fn_name]}" "$pathvar_add_usage" 
+            printf 'Usage: pathvar_add %s %s\n' "${o[pathvar]-PATH_VARIABLE}" "$pathvar_add_usage" 
             printf 'Purpose: %s\n' "$pathvar_add_purpose" 
             printf 'Options:%s' "$pathvar_add_options"
             return 1 ;;
@@ -215,14 +215,20 @@ pathvar_add_opt() {
 # pathvar_add is not really supposed to be called directly.
 # Instead create wrapper functions as in Porcelain below.
 
-# pathvar_add path_string_var option-hash options-and-items...
+# pathvar_add path_string_var options-and-items...
 function pathvar_add {
+    # In case someone just wants help
+    local item="${1---help}"
+    [[ X"$1" == X--* ]] && {
+        pathvar_add_opt pva_nerrs pva_msgs pva_options "$item"
+        return 0
+    }
     # pva_* variables passed by name and received with -n!
-    local path_var_name="$1"
-    local -n pva_path_str="$1"  # path as delimited string
-    local -n pva_options="$2";  # options as we go along
-    shift 2
-    local fn_name="${pva_options[fn_name]:-pathvar_add}"
+    local pathvar="$1"
+    local -n pva_pathvar="$1"  # path as delimited string
+    declare -gA pva_options=();  # options as we go along
+    pva_options[pathvar]="$pathvar"
+    shift 1
     declare -g pva_nerrs=0      # error count
     declare -ga pva_msgs=( )    # error and warning messages
     local -a before             # items to add in front
@@ -230,7 +236,7 @@ function pathvar_add {
     local -a after              # items to add at end
     declare -ga pva_input       # all items before deduping
     declare -ga pva_output      # remaining items after deduping
-    local item option_arg x result dot_cnt=0
+    local option_arg x result dot_cnt=0
     for item; do
         case "$item" in
             (-*) pathvar_add_opt pva_nerrs pva_msgs pva_options "$item" ||
@@ -258,7 +264,7 @@ function pathvar_add {
         # uncomment for debug tracing:
         # >&2 declare -p pva_msgs
     done
-    split_array_delim_str pva_middle "${pva_options[sep]:-:}" "$pva_path_str"
+    split_array_delim_str pva_middle "${pva_options[sep]:-:}" "$pva_pathvar"
     # >&2 declare -p before
     # >&2 declare -p pva_middle
     # >&2 declare -p after
@@ -280,39 +286,25 @@ function pathvar_add {
     }
     # Pva_Output any error or warning messages
     for x in "${pva_msgs[@]}"; do
-        >&2 printf "%s %s\n" "$fn_name" "$x"
+        >&2 printf "%s %s\n" "$pathvar" "$x"
     done
     (( pva_nerrs )) && {
         >&2 printf "Aborting with %d errors!\n" "$pva_nerrs"
         return 1
     }
     result=$( join_delim_args "${pva_options[sep]:-:}" "${pva_output[@]}" )
-    (( ${pva_options[var]} )) && pva_path_str="$result"
-    (( ${pva_options[env]} )) && export pva_path_str="$result"
+    (( ${pva_options[var]} )) && pva_pathvar="$result"
+    (( ${pva_options[env]} )) && export pva_pathvar="$result"
     ! (( ${pva_options[var]} )) && ! (( ${pva_options[env]} )) && printf "%s\n" "$result"
     (( $export )) && export "$var"
 }
 
 # ** Porcelain for pathvar_add
 
-path_add() {
-    declare -gA path_add_options=( [fn_name]="path_add")
-    pathvar_add PATH path_add_options --dots=end -zDV "$@"
-}
-manpath_add() {
-    declare -gA manpath_add_options=( [fn_name]="manpath_add")
-    pathvar_add MANPATH manpath_add_options --dots=no -zDV "$@"
-}
-infopath_add() {
-    declare -gA infopath_add_options=( [fn_name]="infopath_add")
-    pathvar_add INFOPATH infopath_add_options --dots=no -zDV "$@"
-}
-libpath_add() {
-    declare -gA libpath_add_options=( [fn_name]="libpath_add")
-    pathvar_add LD_LIBRARY_PATH libpath_add_options --dots=no -zDV "$@"
-}
-
-export -f pathvar_add path_add manpath_add libpath_add
+path_add() { pathvar_add PATH --dots=end -zDV "$@"; }
+manpath_add() { pathvar_add MANPATH --dots=no -zDV "$@"; }
+infopath_add() { pathvar_add INFOPATH --dots=no -zDV "$@"; }
+libpath_add() { pathvar_add LD_LIBRARY_PATH --dots=no -zDV "$@"; }
 
 # make viewing paths easier
 
@@ -322,7 +314,7 @@ pathvar_show() {
   case $# in
     1) pathvar_show_ $1 | fmt ;;
     2) pathvar_show_ $1 | pr -$2 -t ;;
-    *) usage "pathvar_show pva_path_str [ columns ]" ;;
+    *) usage "pathvar_show pva_pathvar [ columns ]" ;;
   esac
 }
 
