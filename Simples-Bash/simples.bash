@@ -34,7 +34,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 # Assumptions about shell packages (change below, not here!):
 #	simples_bash_suffixes: .bash .kbash .sh
-#	simples_bash_path: $HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples
+#	simples_bash_path: $HOME/Lib/Bash/Simples-Bash $HOME/Lib/Bash/Simples-Sh
 
 # Assumes the following shell builtins and/or features:
 #	printf
@@ -182,9 +182,19 @@ simple_var_trace() {
     declare -gA simple_var_trace
     local v
     case $1 in
-        (--on) for v in "${@:2}"; do ${simple_var_trace["$v"]}=1; done ;;
+        (--on) for v in "${@:2}"; do let {simple_var_trace["$v"]}=1; done ;;
         (--off) for v in "${@:2}"; do unset ${simple_var_trace["$v"]}; done ;;
-        (*) return (( ${simple_var_trace["$1"]-0}  )) ;;
+        (*) return $(( ${simple_var_trace["$1"]-0}  )) ;;
+    esac
+}
+
+simple_var_trace() {
+    declare -gA simple_var_trace
+    local v
+    case $1 in
+        (--on) for v in "${@:2}"; do let {simple_var_trace["$v"]}=1; done ;;
+        (--off) for v in "${@:2}"; do unset ${simple_var_trace["$v"]}; done ;;
+        (*) return $(( ${simple_var_trace["$1"]-0}  )) ;;
     esac
 }
 
@@ -369,7 +379,7 @@ simple_exported() { in_simple_delim_list ' ' "$simples_exported" "$1"; }
 #	simple_require pathvar
 # and use the facilities defined therein.
 simples_bash_suffixes='.bash .kbash .sh'
-simples_bash_path="$HOME/Lib/Bash/Simples $HOME/Lib/Sh/Simples"
+simples_bash_path="$HOME/Lib/Bash/Simples-Bash $HOME/Lib/Bash/Simples-Sh"
 
 # simple_source_file [--export] SIMPLE_FILENAME
 # returns the filename, if any, which corresponds to the argument
