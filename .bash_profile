@@ -18,7 +18,7 @@
   return 1 > /dev/null || exit 1
 }
 
-simple_require paths
+simple_require --export paths
 
 # ** Source System and User-Specific Content
 
