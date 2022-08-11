@@ -1,0 +1,34 @@
+# * where: ~/.xprofile
+#    what: X Session Login Profile - suitable for X Session Managers
+#    who: J. Greg Davidson
+#   when: April 1996 - December 2021
+
+# Note: Many/Most/All? X Display Managers and Session Managers won't run BASH so
+# you can't configure your graphical login session with your ~/.bash_profile
+# script. Instead, they use sh or dash which sources ~/.profile or ~/.xprofile
+# and you don't get to export functions to the environment. We're using the sh
+# version of Simples for this file. You CAN put scalar variables into the
+# environment.
+
+# ** Load the Simples System
+
+. "${simples_sh-$HOME/Lib/Bash/Simples-Sh/simples-export.sh}" || {
+  >&2 echo ".xprofile failed to load Simples; exiting"
+  return 1 > /dev/null || exit 1
+}
+
+simple_require paths
+
+# ** Source System and User-Specific Content
+
+# To add your favorite paths, consider this 3-step command:
+# shopt -s nullglob
+# path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
+# shopt -u nullglob
+
+# Setup any subsystems which need environment variable support
+# e.g. GUIX, mmh, etc.
+
+# To keep this file generic, we'll do our things here:
+
+simple_src $LOGIN_INITS "$HOME/.profile_local"
