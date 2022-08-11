@@ -10,40 +10,35 @@
 # use the sh version for ~/.profile and ~/.xprofile (which can be linked
 # together).  You can put scalar variables into the environment.
 
+. ~/.profile
 
 # ** Load the Simples System
 
-. "${simples_bash-$HOME/Lib/Bash/Simples-Bash/simples-export.bash}" || {
+. "${simples_bash-$HOME/Lib/Shell/Simples-Bash/simples-export.bash}" || {
   >&2 echo ".bash_profile failed to load Simples; exiting"
-  return 1 > /dev/null || exit 1
+  return 1 2> /dev/null || exit 1
 }
 
 simple_require --export paths
 
 # ** Source System and User-Specific Content
 
-# To add your favorite paths, consider this 3-step command:
-# shopt -s nullglob
-# path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
-# shopt -u nullglob
-
-# Setup any subsystems which need environment variable support
-# e.g. GUIX, mmh, etc.
-
-# To keep this file generic, we'll do our things here:
-
-simple_src $LOGIN_INITS "$HOME/.bash_profile_local"
+if_src $LOGIN_INITS ".local.bash"
 
 # ** Interactive Shell Features
 
-# return if we're in a non-interactive shell
-[[ -t 0 ]] &&  [[ "$-" == *i* ]] || return
+# unless we're in a non-interactive shell, we're done
+x="$?" # preserve any existing error code
+[[ -t 0 ]] ||  [[ "$-" == *i* ]] ||
+    { return "$x" 2> /dev/null || exit "$x"; }
 
 # is this ancient s**t still meaningful?
 stty erase '^?' kill '^u' intr '^c' quit '^\' susp '^z'
 
 # Source your favorite login-time scripts
-simple_src_dir ~/.bash_profile.d
+simple_src_dir ~/.local.bash.d
+
+simple_src --set ~/.bash_profile
 
 # Source your favorite interactive session features
 simple_src "${BASH_ENV:-$HOME/.bashrc}"
