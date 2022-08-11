@@ -302,25 +302,33 @@ simple_array() {		# ARRAY_NAME [ value... ]
 
 # ** Sourcing Scripts
 
-# simple_src [--count-only] path-to-script
-# Source a file if it exists and has not already been sourced.
-# --count-only --- just boost the count, it was sourced another way
+# simple_src [--set | get] path-to-script...
+# Source scripts if they exist and have not already been sourced.
+# --set --- just boost the count(s), it was sourced another way
+# --get --- just return the count -- one path only
 simple_src() {
-    local count_only=''
-    [ X--count-only == X"$1" ] && {
-        count_only="$1"; shift
-    }
     declare -gA simple_src_count
+    local set_only=''
+    case "$1" in
+        (--set) set_only="$1"; shift ;;
+        (--get) (( $# == 2 )) ||
+                     { >&2 echo simple_src arity warning: "$*"; return 127; }
+                  g=$(realpath "$2") || return 126
+                  return ${simple_src_count[$g]:-0} ;;
+        (--) shift ;;
+        (-*) >&2 echo simple_src warning: bad option "$1" ; shift ;;
+    esac
     local f g
     for f; do
         if [ ! -f "$f" ]; then
             >&2 echo "simple_src warning: No file $f!"
         else
-            g=$(realpath "$f") 
-            { [ -n "$count_only" ] ||
-                 ! (( simple_src_count["$g"] )) ||
-                 . "$g"
-            } && let ++simple_src_count["$g"] 
+            g=$(realpath "$f") || return 125
+            [ -n "$set_only" ] ||
+              (( simple_src_count["$g"] )) ||
+              . "$g" ||
+              >&2 echo simple_src warning: error after sourcing "$g"
+            let ++simple_src_count["$g"]
         fi
     done
 }
