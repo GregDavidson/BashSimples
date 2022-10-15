@@ -1,0 +1,175 @@
+* Managing Environment Paths with Shell Scripts
+
+** Context
+
+Modern operating systems allow users to customize many services using
+/Environment Variables/ whose values are /Strings/ which can be interpreted
+according to the purpose of the /Variable/. Some of these /Environment
+Variables/ are /Path Variables/ whose values contain a /Sequence of Elements/
+separated by a /Delimiter/, usually a colon (:) (Microsoft uses a semi-colon).
+This feature derives from /Unix/ and is now standard in all Microsoft, Linux
+(including Gnu/Linux and Android) and BSD (including all Apple Operating
+Systems).
+
+The original /Path Variable/ is =PATH= whose elements consist of directories
+containing executable programs. When a /Command Interpreter/ (aka /Shell/) is
+given the name of a program without a directory path, it searches for the
+appropriate program by looping along the =PATH= directories and takes the first
+one it finds. Thus, the order of directories on =PATH= matters!
+
+** Examples of /Path Variables/
+
+Some PATH variables in Gnu/Linux
+#+begin_src sh
+$ env | grep '^[^=]*PATH.*=' | cut -d= -f1
+XDG_SESSION_PATH
+MANDATORY_PATH
+INFO_LOAD_PATH
+GUILE_LOAD_PATH
+XDG_SEAT_PATH
+GUILE_LOAD_COMPILED_PATH
+INFOPATH
+EMACS_LOAD_PATH
+DEFAULTS_PATH
+GUIX_LOCPATH
+COWPATH
+PATH
+EMACSLOADPATH
+#+end_src
+
+The original PATH variable, providing lookup for executables, can be quite long:
+#+begin_src sh
+$ echo $PATH
+/home/greg/Projects/Wicci/Tools/Bin:/home/greg/Bin:/home/greg/Shared/Bin:/usr/bin/mh:/home/greg/.cargo/bin:/home/greg/SW/X/bin:/home/greg/SW/words/bin:/home/greg/SW/Wicci/Bin:/home/greg/SW/uwm/bin:/home/greg/SW/uucp/bin:/home/greg/SW/unix/bin:/home/greg/SW/tex/bin:/home/greg/SW/sys/bin:/home/greg/SW/startup/bin:/home/greg/SW/shar/bin:/home/greg/SW/selp/bin:/home/greg/SW/rsync/bin:/home/greg/SW/oobr/bin:/home/greg/SW/ng/bin:/home/greg/SW/misc/bin:/home/greg/SW/mh/bin:/home/greg/SW/mail/bin:/home/greg/SW/lj3/bin:/home/greg/SW/links/bin:/home/greg/SW/killing/bin:/home/greg/SW/image/bin:/home/greg/SW/ics/bin:/home/greg/SW/html/bin:/home/greg/SW/git/bin:/home/greg/SW/emacs/bin:/home/greg/SW/dir2dir/bin:/usr/local/SW/pgsql/bin:/usr/local/SW/julia/bin:/usr/local/SW/j/bin:/home/greg/Bin.guix:/home/greg/.guix-profile/bin:/home/greg/.config/guix/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+#+end_src
+
+Or more readably:
+#+begin_src sh
+$ echo $PATH | tr : '\n' | sed 's|^/home/greg/|~/|' | cat -n
+     1	~/Projects/Wicci/Tools/Bin
+     2	~/Bin
+     3	~/Shared/Bin
+     4	/usr/bin/mh
+     5	~/.cargo/bin
+     6	~/SW/X/bin
+     7	~/SW/words/bin
+     8	~/SW/Wicci/Bin
+     9	~/SW/uwm/bin
+    10	~/SW/uucp/bin
+    11	~/SW/unix/bin
+    12	~/SW/tex/bin
+    13	~/SW/sys/bin
+    14	~/SW/startup/bin
+    15	~/SW/shar/bin
+    16	~/SW/selp/bin
+    17	~/SW/rsync/bin
+    18	~/SW/oobr/bin
+    19	~/SW/ng/bin
+    20	~/SW/misc/bin
+    21	~/SW/mh/bin
+    22	~/SW/mail/bin
+    23	~/SW/lj3/bin
+    24	~/SW/links/bin
+    25	~/SW/killing/bin
+    26	~/SW/image/bin
+    27	~/SW/ics/bin
+    28	~/SW/html/bin
+    29	~/SW/git/bin
+    30	~/SW/emacs/bin
+    31	~/SW/dir2dir/bin
+    32	/usr/local/SW/pgsql/bin
+    33	/usr/local/SW/julia/bin
+    34	/usr/local/SW/j/bin
+    35	~/Bin.guix
+    36	~/.guix-profile/bin
+    37	~/.config/guix/current/bin
+    38	/usr/local/sbin
+    39	/usr/local/bin
+    40	/usr/sbin
+    41	/usr/bin
+    42	/sbin
+    43	/bin
+    44	/usr/games
+    45	/usr/local/games
+    46	/snap/bin
+#+end_src
+
+** Augmenting a /Path Variable/
+
+The usual method for adding a new directory to =PATH= is
+#+begin_src sh
+  # Add ~/bin to the beginning of my PATH
+  PATH="~/bin:$PATH"
+  # Add /usr/games to the end of my PATH
+  PATH="$PATH:/usr/games"
+#+end_src
+but what if the added element is already on the path? If this code is in a
+/Profile Script/ and that script is repeatedly /Sourced/, the /Path Variable/
+will fill with repeated elements.
+
+An improved method for adding a new directory to =PATH= 
+#+begin_src sh
+  # Add elements to the beginning of my PATH
+  for d in ~/[Bb]in ~/Shared/Bin in
+    case ":$PATH:" in
+        ":$d:") ;;
+        ,*) PATH="$d:$PATH" ;;
+    esac
+#+end_src
+
+This can be conveniently packaged in a shell function, along with dealing with
+adding to the front or the back of the path, and whether the component exists
+(helpful to detect mistakes).
+
+#+begin_src sh
+  stderrstderr() { >&2 echo "$*"; }
+  warn() { stderr "$pgm warning: $*"; }
+  usage() {stderr "$pgm OLD_PATH_VALUE [-b | -e | DIRECTORY_PATH]..."; }
+  # Add elements to a colon-delmited PATH
+  path_augment() { 
+    local path end=true d pgm='path_augment'
+    [ $# -ge 2 ] || { path_augment_usage; return 1; }
+    path="$1" ; shift    
+    for d
+        -b) end=false ;;      # add subsequent elements to the beginning
+        -e) end=true ;;       # add subsequent elements to the end
+        -?) path_augment_usage ; break ;;
+        case ":$PATH:" in
+            ":$d:") ;;            # element is already present
+            ,*) [ -d "$d" ] || { warn "skipping non-existent directory $d"; break; }
+               if "$end"
+               then "path="$path:$d"
+               else "path="$d:$path"
+               fi
+        esac
+    echo "$path"
+  }
+#+end_src
+
+The shell function can then be used like this
+#+begin_src 
+  PATH=`path_augment "$PATH" -b ~/[Bb]in /usr/local/bin -e /usr/games`
+#+end_src
+
+- These functions have no side effects (other than error messages)
+- =path_augment= can work with any path variable
+      - as long as the elements are directories
+      - how can that be generalized
+a
+What other features would increase convenience and reliability?
+
+** Path Trees in Resource Forks
+
+The /Unix/ and /GnuLinux/ conventions for organizing System Files in the
+/Filesystem/ are documented in Section 7 of the Unix Programers' Manual. Run =man
+hier= on Unix or Linux.
+
+Essential resources are stored in subdirectories of /the root partition/ (/)
+
+The /Unix/ convention for installing /Packages/ is to split up semantically
+related /Files/ into different places in the /Filesystem/ as documented in
+Section 7 of the Unix Programers' Manual. Run =man hier= on Unix or Linux.
+- Binary programs and scripts go in /bin, /usr/bin, /local/bin, ebbbtc.
+- Libraries go in /lib, /usr/lib, /local/lib, etc.
+- Sharable resources, mostly readonly text, e.g. documentation go in /usr/share, /usr/local/share, etc.
+      - No, there is no 
