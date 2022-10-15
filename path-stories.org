@@ -164,12 +164,14 @@ The /Unix/ and /GnuLinux/ conventions for organizing System Files in the
 /Filesystem/ are documented in Section 7 of the Unix Programers' Manual. Run =man
 hier= on Unix or Linux.
 
-Essential resources are stored in subdirectories of /the root partition/ (/)
+- The Root Partition - / :: stores the most essential resources
+- The User Partition - /usr :: stores
+- The Local Partition - /usr/local ::
 
 The /Unix/ convention for installing /Packages/ is to split up semantically
-related /Files/ into different places in the /Filesystem/ as documented in
-Section 7 of the Unix Programers' Manual. Run =man hier= on Unix or Linux.
+related /Files/ into different places in the /Filesystem/.
+
 - Binary programs and scripts go in /bin, /usr/bin, /local/bin, ebbbtc.
 - Libraries go in /lib, /usr/lib, /local/lib, etc.
-- Sharable resources, mostly readonly text, e.g. documentation go in /usr/share, /usr/local/share, etc.
-      - No, there is no 
+- Sharable resources, e.g. documentation go in /usr/share, /usr/local/share, etc.
+      - No, there is no /share!
