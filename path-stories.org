@@ -1,15 +1,18 @@
 * Managing Environment Paths with Shell Scripts
+Note: This is an [[https://orgmode.org][OrgMode]] file, like Markdown but oh, so much more!
+Github won't show you the whole file unless you use their =RAW= tab.
+For best results, download and view it locally with [[https://github.com/GregDavidson/computing-magic/blob/main/Software-Tools/Emacs/emacs-readme.org][Emacs]].
 
 ** Context
 
 Modern operating systems allow users to customize many services using
 /Environment Variables/ whose values are /Strings/ which can be interpreted
 according to the purpose of the /Environment Variable/. Some of these
-/Environment Variables/ are /Path Variables/ whose values consist of a /Sequence
-of Elements/ separated by a /Delimiter/. The delimiter is a colon (:) in /Posix
-Systems/ which include Unix, Gnu/Linux (and Android) and BSD (including Apple's
-MacOS and iOS). Microsoft DOS and Windows have a similar concept although they
-use a semi-colon (;) as a delimiter.
+/Environment Variables/ are /Path Variables/ whose values consist of a
+/Sequence of Elements/ separated by a /Delimiter/. The delimiter is a
+colon (:) in /Posix Systems/ which include Unix, Gnu/Linux (also Android)
+and BSD (including Apple's MacOS and iOS). Microsoft DOS and Windows
+have a similar concept although they use a semi-colon (;) as a delimiter.
 
 The original /Path Variable/ is =PATH= whose elements consist of directories
 containing executable programs. When a /Command Interpreter/ (aka /Shell/) is
@@ -206,7 +209,7 @@ Infelicities
 
 How can this function be improved?
 
-** Path Trees in Resource Forks
+** Path Trees in Resource Directories
 
 The /Posix/ conventions for organizing /System Files/ in the
 /Filesystem/ are documented in =hier(7)= in the /Programers' Manual/.
@@ -218,9 +221,10 @@ Most resources for users can be found under the
 - Local Partition /usr/local :: non-standard resources added by administrators
 - User's Home Directory /home/USERNAME :: the user must administrate this!
 
-The /Posix/ convention for installing /Packages/ is to split up their files and
-store them in different places in the /Filesystem/ along with similiar kinds of
-files from other packages. (This seemed reasonable in the 1970s!)
+The /Posix/ convention for installing collections of files from /Packages/ is to
+split them up and store them in different places in the /Filesystem/ along with
+similiar kinds of files from unrelated /Packages/. (Somehow this seemed
+reasonable in the 1970s!)
 
 - Binary programs and scripts go in =/bin=, =/usr/bin=, =/local/bin=, etc.
 - Libraries in =/lib=, =/usr/lib=, =/local/lib=, etc.
@@ -246,14 +250,18 @@ I have adopted a similar approach which predates Apple's convention.
 
 Under my /Home Directory/ I store my scripts and programs like this
 - ~/Bin :: miscellaneous standalone script files
-- ~/SW/*/* :: related programs and scripts needing other resources
-      - Over time I've accumulated 30 such groups, e.g.
+- ~/SW/*/* :: Collections of programs, scripts and resources
+      - Over time I've accumulated 30 such collections!
+      - Two examples follow
+ 
 #+begin_example
-~/SW/emacs -- my emacs-related resources with subdirectories
+SW/emacs -- my emacs-related collection
+   - Subdirectories:
       - bin -- my shell scripts which automate emacs
       - doc -- my documentation for my emacs projects
       - lisp -- my lisp code which extends emacs
--/SW/ics -- resources related to an old employer with subdirectories
+SW/ics -- a collection related to an old employer
+   - Subdirectories:
       - bin -- scripts
       - bin.sun3 -- programs compiled for the sun3 architecture
       - src -- source code for the compiled programs
@@ -262,9 +270,11 @@ Under my /Home Directory/ I store my scripts and programs like this
 
 As an administrator, I organize =/usr/local= similarly, except that I allow for multiple versions
 of packages and subsystems to be installed concurrently:
+#+begin_example
 - /usr/local/bin -- miscellaneous stand-alone scripts and programs
 - /usr/local/SW.d -- packages and subsystems with a version string
 - /usr/local/SW -- unversioned packages, or links to specific versions
+#+end_example
 
 #+begin_src sh :results output
   tree /usr/local/SW/
@@ -283,7 +293,6 @@ of packages and subsystems to be installed concurrently:
 #+end_src
 
 #+RESULTS:
-#+begin_example
 /usr/local/SW.d/
 ├── j901
 │   ├── addons
@@ -318,4 +327,21 @@ of packages and subsystems to be installed concurrently:
     └── share
 
 31 directories
-#+end_example
+
+** Automatically Maintaining All The Path Variables
+
+- The PATH variables in the /Environment/ must be updated every time a user logs in.
+      - This is generally done with a /Profile Shell Script/
+            - Automatically sourced when you login in
+            - See [[https://github.com/GregDavidson/BashSimples/blob/main/.profile][.profile]] for an example
+
+From my =~/.sh.d/local.sh= file:
+#+begin_src sh
+# put software collections subdirectories into appropriate Path Variables
+  collection_add /usr/local/SW
+  collection_add "$HOME/SW"
+
+# add additional bin directories to PATH variable
+PATH=$(path_list "$PATH" ~/.cargo/bin /usr/bin/mh ~/Shared/Bin ~/[Bb]in)
+export PATH
+#+end_src
