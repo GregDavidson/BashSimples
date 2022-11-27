@@ -1,17 +1,39 @@
 #!/bin/sh
 # ~/.profile - login preferences for sh compatible shells
+# Directly Sourced by:
+# - Many GUI display managers and session managers use /bin/sh
+#   which is often a link to dash, bash or another Posix Shell
+#   - e.g. light-dm and mate-session
+# - ~/.bash_profile
 
-# Now that so many login systems are using dash instead of bash or zsh
-# we need to get back to the basics for these essentials.
-# Everything here should work with any of these shells.
+export HOME_PROFILE=begun  # protect against infinite sourcing loops!
+
+# Many login systems are using /bin/sh instead of a user's
+# chosen shell. /bin/sh is often a link to dash although it
+# can be arranged to be any Posix-compatible shell such as
+# Bash or zsh. This script will be called automatically and
+# should only use Posix sh features. But if it is being
+# called by a more powerful shell, it would be nice if it
+# were to source the login scripts of that shell!
+
+# ensure ~/.bash_profile sourced if we're really running bash
+# this will be called near the end
+ensure_bash_profile() {
+    local f="$HOME/.bash_profile"
+    [ -n "$BASH_VERSION" ] || return     # not running bash
+    ! [ -v HOME_BASH_PROFILE ] || return # already sourced
+    [ -f "$f" ] || return                # it doesn't exist
+    . "$f"                               # source it now!
+}
 
 # We define some generic functions in this script
-# then source some local scripts to actually set things up
+# then source some local scripts to customize things
+# to the user's tastes
 
 # Our configuration could "inherit" from a "super" one
 # Local scripts could be under $super or under $HOME
-sh_local=".profile.sh"
-sh_local_dir=".sh.d"
+# THIS PARAGRAPH GOT DAMAGED - IS THIS WHAT IT SHOULD BE?!!!
+sh_local_dir='.profile.d'
 
 # Intended for use by if_src_super
 # Try sourcing "$1"
@@ -128,3 +150,19 @@ else
     if_src "$sh_local" $HOME/$sh_local_dir/*
 fi
 
+# Construction notes:
+# - Only source $HOME/.sh.d/* scripts
+# - Don't incrementally extend the original path
+# - Only use the original path for avoiding duplicates
+# - Therefore, just append the components
+# - The caller can then add the new components
+#   - At the front or back -- trivial
+#   - At an intermediate point -- not difficult
+# - Provide convenience functions for
+#   - splicing in between the home and system directories
+#   - splicing after a particular component
+# - There's a lot of things under ~/.home-inits which need upgrading!
+
+ensure_bash_profile
+
+export HOME_PROFILE=done
