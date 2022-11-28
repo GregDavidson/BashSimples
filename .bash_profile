@@ -56,8 +56,8 @@ fi
 # ** Source User-Supplied Scripts
 
 home_bash_inits=( $HOME/.bash_profile.d/* )
-[ ${#home_bash_inits[@]} != 1 ] || # no false matches possible
-    [ "${home_bash_inits[0]%%*/}" = '*' ] || # false match, or
+[ ${#home_bash_inits[@]} -ne 1 ] || # no false matches possible
+    [ "${home_bash_inits[0]##*/}" = '*' ] || # false match, or
     for f in "${home_bash_inits[@]}"; do     # for all matches
         . "$f" || >&2 echo ".bash_profile warning: error sourcing $f"
     done
