@@ -34,7 +34,7 @@ simples_header='$Id: simples.bash,v 1.1 2008/03/18 20:42:55 greg Exp greg $'
 
 # Assumptions about shell packages (change below, not here!):
 #	simples_bash_suffixes: .bash .kbash .sh
-#	simples_bash_path: $HOME/Lib/Bash/Simples-Bash $HOME/Lib/Bash/Simples-Sh
+#	simples_bash_path: $HOME/Lib/Shell/Simples-Bash $HOME/Lib/Shell/Simples-Sh
 
 # Assumes the following shell builtins and/or features:
 #	printf
@@ -387,7 +387,7 @@ simple_exported() { in_simple_delim_list ' ' "$simples_exported" "$1"; }
 #	simple_require pathvar
 # and use the facilities defined therein.
 simples_bash_suffixes='.bash .kbash .sh'
-simples_bash_path="$HOME/Lib/Bash/Simples-Bash $HOME/Lib/Bash/Simples-Sh"
+simples_bash_path="$HOME/Lib/Shell/Simples-Bash $HOME/Lib/Shell/Simples-Sh"
 
 # simple_source_file [--export] SIMPLE_FILENAME
 # returns the filename, if any, which corresponds to the argument
