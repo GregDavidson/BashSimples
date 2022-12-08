@@ -1,19 +1,34 @@
 #!/usr/bin/bash
 
-# ** Who are we, where is our stuff, what are our destinations?
+# ** Who we are, where's our stuff, what're our destinations?
 
-set -u
-pgm_name="${0##*/}"
-bash_lib=~/Lib/Bash
-simples_lib="$bash_lib/Simples"
-local='.bash_profile_local'
-local_d="${local}.d"
-profile='.bash_profile'
-profile_d="${profile}.d"
-rc='.bashrc'
-rc_d="${rc}.d"
-xprofile='.xprofile'
-save=~/.save-dots
+set -u                               # unknown parameter expansions are errors
+pgm_name="${0##*/}"                  # name of this script
+
+home="${home:-$HOME}"                # usual location of profile scripts
+bash_lib="$home/Lib/Shell"           # location of bash profiles
+simples_lib="$bash_lib/Simples-Bash" # location of bash simples scripts
+xprofile="$home/.xprofile"
+save="$home/.save-dots"
+
+profile_names=(.profile .bash_profile .bashrc)
+profile_purposes=(
+    'main login-time sh script'
+    'main login-time bash script'
+    'main startup-time script for interactive bash shells'
+)
+profile_dir_purposes=(
+    'login-time scripts only requiring sh features'
+    'login-time scripts requiring bash features'
+    'startup-time scripts for interactive bash shells'
+)
+
+profiles=()
+profile_dirs=()
+for i in ${!profile_names[@]}; do
+    profiles+=("$home/${profile_names[$i]}")
+    profile_dirs+=("$home/${profile_names[$i]}.d")
+done
 
 # ** Communication and Exits
 
@@ -34,10 +49,12 @@ pgm_error() {
 
 # ** Check what we can regardless of our specific goals
 
-(( BASH_VERSINFO[0] >= 5 )) || pgm_error 1 'Please upgrade Bash to version 5 or better'
+(( BASH_VERSINFO[0] >= 5 )) ||
+    pgm_error 1 'Please upgrade Bash to version 5 or better'
 
 for d in "$bash_lib" "$simples_lib"; do
-    [ -d "$d" ] || pgm_error 2 "No directory $d - maybe run install-library script?"
+    [ -d "$d" ] ||
+        pgm_error 2 "No directory $d - maybe run install-library script?"
 done
 
 for d in "$simples_lib"; do
@@ -47,26 +64,27 @@ for d in "$simples_lib"; do
 done
 
 for d in "$bash_lib"; do
-    for f in "$profile" "$rc" ; do
+    for f in "${profiles[@]}" ; do
         [ -f "$d/$f" ] || pgm_error 4 "No file $f"
     done
 done
 
 # ** Get informed consent
 
-cat << EOF
-
-$pgm_name: What we offer to do for you:
-
-1. Backup your $profile and $rc in $save
-2. Replace them with links to the ones in $bash_lib
-   which exploit the features of $simples_lib
-3. Ensure you have a $local script
-3. Ensure you have directories for scriptlets
-   $profile_d
-   $local_d
-   $rc_d
+cat <<EOF
+If you accept, this script will
+- Move existing customized profiles to $save
+- Replace them with links to the ones in $bash_lib
+- Ensure you have directories for your extension scripts
 EOF
+echo 'Profiles:'
+for i in ${!profile_names[@]}; do
+    printf '%s -- %s\n' "${profile_names[$i]}" "${profile_purposes[$i]}"
+done
+echo 'Extension Script Directories:'
+for i in ${!profile_names[@]}; do
+    printf '%s.d -- %s\n' "${profile_names[$i]}" "${profile_dir_purposes[$i]}"
+done
 printf "%s [yn] " "Shall we proceed?"
 
 read answer junk
@@ -75,21 +93,19 @@ read answer junk
 # ** Safely install the new scripts
 
 saved=( )
-for d in "$HOME"; do
-    for f in "$profile" "$rc" ; do
-        [ -L "$d/$f" ] && rm "$d/$f"
-        [ -e "$d/$f" ] && {
-            cmp -s "$d/$f" "$bash_lib/$f" && {
-                pgm_msg "$f is already the same as $bash_lib/$f"
-                break
-            }
-            mkdir -p "$save" || pgm_error 6 "Can't make directory $save"
-            mv --backup=numbered "$d/$f" "$save" && saved+=("$f") ||
-                pgm_error 7 "Can't save $f to directory $save"
-            ln -s "$bash_lib/$f" "$d/$f" ||
-                pgm_warn "linking $f failed"
+for f in "${profiles[@]}" ; do
+    [ -L "$f" ] && rm "$f"
+    [ -f "$f" ] && cmp -s "$f" "$bash_lib/$f" && {
+            pgm_msg "$f is already the same as $bash_lib/$f"
+            continue
         }
-    done
+    [ -e "$f" ] && {
+        mkdir -p "$save" || pgm_error 6 "Can't make directory $save"
+        mv --backup=numbered "$f" "$save" && saved+=("$f") ||
+                pgm_error 7 "Can't save $f to directory $save"
+    }
+    ln -s "$bash_lib/$f" "$f" ||
+        pgm_warn "linking $bash_lib/$f to $f failed"
 done
 
 (( ${#saved[@]} > 0 )) && {
@@ -101,12 +117,11 @@ done
 
 # ** Ensure the other bits are set up
 
-cd
-
+# Ensure .xprofile is a link to .profile
 for x in "$xprofile"; do
-    [ -L "$x" ] && rm "$x" ||
-            pgm_warn "removing $x link failed"
-    if [ -e "$x" ]; then
+    if [ -L "$x" ]; then
+        rm "$x"; } || pgm_warn "removing $x link failed"
+    elif [ -e "$x" ]; then
         pgm_msg '' "You may need to update your $x"
     else
         ln -s "$profile" "$x" || pgm_warn "linking $x failed"
@@ -114,19 +129,11 @@ for x in "$xprofile"; do
 done
 
 # Ensure these lovely directories exist
-for d in "$profile_d" "$local_d" "$rc_d"; do
+for d in "${profile_dirs[@]}" ; do
     mkdir -p "$d"
-done
-
-# Ensure this script exists but don't touch it if it does!
-for f in ".bash_profile_local"; do
-[[ -e "$f" ]] || {
-    [ -L "$f" ] && rm "$f" || pgm_warn "removing $f link failed"
-    cp "$bash_lib/$f" . || pgm_warn "copying $f failed"
-}
 done
 
 # For additional quality we could create a temporary save directory
 # for this run of the script and restore anything from there if its
-# replacement were to fail.  At the end, I could merge it in to the
+# replacement were to fail.  At the end, we could merge it in to the
 # regular save directory and rmdir it.
