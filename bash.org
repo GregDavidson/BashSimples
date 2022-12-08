@@ -1,0 +1,50 @@
+* BASH - The Gnu and Posix Standard Bourne-Again SHell
+
+** Why to use and why to not use =bash=
+
+*** Why you might want to use =bash=
+
+- It's available on more platforms than any other shell.
+      - Often already installed
+      - Warning: The MacOS version is very out of date!
+- It has good scripting features
+- It has good interactive features
+
+*** Why you might /not/ want to use =bash=
+
+- Gnu/Linux GUI login programs moving to =dash=
+      - Your .bash_profile script will be ignored!
+- Using any shell with =emacs= gives even better interactive features
+- [[https://en.wikipedia.org/wiki/Z_shell][zsh]] is more powerful (and complex and feature full)
+- [[https://en.wikipedia.org/wiki/Rc][Rc]] is more elegant (powerful by design, with less complexity and features)
+- Use the common subset of [[https://en.wikipedia.org/wiki/Bourne_shell][sh]] and [[https://en.wikipedia.org/wiki/Almquist_shell][dash]]
+      - It will work in any [[https://en.wikipedia.org/wiki/POSIX][POSIX]] shell
+            - E.g. =sh=, =dash=, =ksh=, =bash=, =zsh= and more
+            - But /not/ =rc=, =csh=, =fish=
+
+You might want to use a more powerful language
+
+- [[https://scsh.net/][scsh]] or another lispy shell
+- A more general-purpose scripting language
+      - E.g. =tcl=, =perl=, =python=, et al
+- A fully general-purpose language with suitable libraries
+      - E.g. =rust=
+
+** =bash= tips and techniques
+
+*** =lastpipe=
+
+From [[https://stackoverflow.com/questions/23356779/how-can-i-store-the-find-command-results-as-an-array-in-bash][how-can-i-store-the-find-command-results-as-an-array-in-bash]]
+
+#+begin_src sh
+set +m
+shopt -s lastpipe
+array=()
+find . -name "${input}" -print0 | while IFS=  read -r -d $'\0'; do array+=("$REPLY"); done; declare -p array
+#+end_src
+
+=shopt -s lastpipe= tells bash to run the last command in the pipeline in the
+current shell (not the background). This way, the array remains in existence
+after the pipeline completes. Because lastpipe only takes effect if job control
+is turned off, we run =set +m=. (In a script, as opposed to the command line, job
+control is off by default.)
