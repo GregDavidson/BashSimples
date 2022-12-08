@@ -1,58 +1,68 @@
-* Directory: ~/Lib/Bash
+* Directory: ~/Gits/Shell-Profiles
 
-This is a collection of scripts which can make Bash much nicer, especially for
-power users but also for setting up a nice environment for a GUI Desktop.
+** Posix-Shell Profile and Utility Scripts
+
+This is a collection of scripts for /Posix-Compatible Shells/ which can support
+configuring and extending an /Operating System/, especially a /User Account/.
 
 If you would like to know more about this project
-- see [[*CONTEXT][CONTEXT]] section below
-- see [[*STORY][STORY]] below.
-Alas, /github/ doesn't currently understand internal links!
+- see [[*CONTEXT][CONTEXT]] section below for my motivations for this project
+- see [[*STORY][STORY]] section below for how these things came to be
+- see [[*GLOSSARY][GLOSSARY]] section below for definitions of most of the technical terms
+
+If you're reading this on /github/, alas, /github/ doesn't yet understand
+- Document Section Folding
+      - so this document may seem rather long
+      - which is why I've put the optional sections at the bottom
+- Links to internal sections of documents
+      - so you'll have to manually scroll down to the various sections
+
+Let's start with the most important parts!
 
 ** Profiles (put these in your home directory)
 
-| Profile Script       | Purpose                                               |
-|----------------------+-------------------------------------------------------|
-| .bash_profile        | sourced at login time by bash                         |
-| .xprofile            | symbolic link to .bash_profile for X Display Managers |
-| .bashrc              | sourced by non-login shell                            |
-| bash_profile.d       | sample scripts for your ~/.bash_profile.d             |
-| bash_profile_local.d | sample scripts for your ~/.bash_profile._locald       |
-| bashrc.d             | sample scripts for your ~/.bashrc.d                   |
+| Profile Script   | Purpose                                            |
+|------------------+----------------------------------------------------|
+| .xprofile        | symbolic link to =.profile= for X Display Managers |
+| .profile         | sourced by accounts using =sh= workalike shells    |
+| .bash_profile    | sourced at start-up by login =bash=                |
+| .bashrc          | sourced at start-up time by non-login =bash=       |
+| .profile.d/      | sample scripts for your extensions                 |
+| .bash_profile.d/ | sample scripts for your extensions                 |
 
 You can install these things automatically either by /running/ or /studying and
 following/ these provided scripts:
 
 #+begin_src bash
-  Bin/install-library
+  Bin/install-profiles
   Bin/install-dotfiles
 #+end_src
 
-An example path setting suggests a sophisticated directory structure for added
-software:
-#+begin_src bash
-# shopt -s nullglob
-# path_add -aDV ~/SW/*/[Bb]in{,`arch`} /usr/bin/mh ~/.cargo/bin /usr/local/SW/*/[Bb]in
-# shopt -u nullglob
-#+end_src
-This will require another document to fully explain it!!!
-
 ** Simples System
    
-- /Simples/ ::	a system to manage shell extension modules
+Use the Simples System which is right for you:
+- /Simples-Sh/ ::	a system to manage =sh= /extension modules/
+      - Will work for any /Posix-Compatible Shell/
+      - Is not as advanced as /Simples-Bash/
+- /Simples-Bash/ ::	a system to manage =bash= extension modules
 
 The Simples modules allow you to selectively add desirable functionality to your
-Bash environment.
+environment for interactive usage and for your scripts.
 
 | Simples Command              | Purpose                                    |
 |------------------------------+--------------------------------------------|
 | simple_require /module-name/ | loads module /module-name/ if not present  |
 | simple_source /module-name/  | loads module /module-name/ unconditionally |
-| Simples/Bin/*                | scripts to test simples modules            |
+| $simples_bash_path/Bin/*     | scripts to test simples modules            |
 
 Notes:
-1. The word /simple/ used to refer to a remedy for a problem.
-2. There are /Simples Systems/ for some other shells with the same command names
-3. You can help extend the /Simples System/ for =bash= and other shells!
+1. The term /simple/ used to refer to a remedy for a problem.
+2. There are /Simples Systems/ for multiple shells
+       - The fundamental /Simples Functions/ should behave the same
+3. You can help extend the /Simples System/
+       - Please add any new features to /each/ Simples System
+             - with the same behavior
+       - Porting the /Simples System/ to additional shells
 
 ** CONTEXT
 
@@ -70,9 +80,15 @@ This is all a part of [[https://github.com/GregDavidson/computing-magic][Computi
 
 - Power User :: Someone who empowers themselves in interesting and creative
   projects by delegating undesirable non-creative work to computers.
-
+  
 ** STORY
-   
+
+The Simples System
+- Origin Story
+- Possible Future
+
+*** Origin of the Simples System
+
 Late last millennium (the 4-digit years beginning with a 1 instead of a 2) the
 author found himself needing to use several similar but annoyingly different
 shells on different Unix-like platforms.
@@ -99,25 +115,35 @@ were /programmable/ - so I should be able to do something about this mess!
 
 I began the /Simples Project/ by writing a set of shell functions to deal with
 common issues in scripting, e.g. managing lists. I wrote a version of those
-functions for the Bourne =sh=, the Public Domain =Ksh= and an early version of
-=Bash=. I created a shell-independent module system, called /Simples/ to manage
-modules consisting of logical groups of such functions.
+functions for the Bourne Shell =sh=, the Public Domain =Ksh= and an early
+version of =Bash=. I created a shell-independent module system, called /Simples/
+to manage modules consisting of logical groups of such functions.
 
 With the /Simples System/ I could now write nicer, higher-level and more
 portable scripts with any of the shells I had to contend with. And now, thanks
 to GitHub, so can you!
 
 You'd think that by now it would be possible to just do everything in one modern
-shell, e.g. =bash= which is the most ubiquitous. Alas, most Gnu/Linux Graphical
-Desktops only allow =sh= features in their login scripts!
+shell, e.g. =bash= which is the most ubiquitous. Alas, lately, many Gnu/Linux
+Graphical Desktops ignore a user's shell setting and use =sh= for their login
+scripts. Until recently, =sh= on Gnu/Linux systems was usually just a link to
+=bash=. Alas, many Gnu/Linux distributions now link =sh= to =dash=, a new =sh=
+compatible shell which has the unique misfeature that it strips the environment
+of any exported shell functions from a =bash= login profile. Sigh! Fortunately,
+the last problem can be reversed if you have system administration privileges!
 
-There is a moral to this story: When you are provided with /programmable/ tools
-which imperfectly meet your needs and aspirations, /raise the level of your
-tools/ with some modest programming, making them both /more powerful/ and /more
-consistent/. And maybe you will inspire others to improve your work and we'll
-all benefit!
+There are some morals to this story:
+1. When you are provided with /programmable/ tools which imperfectly meet your
+   needs and aspirations, /raise the level of your tools/ with some modest
+   programming, making them both /more powerful/ and /more consistent/.
+2.  Keep what you do compatible with what the rest of the system expects unless
+   you want to have to fork the whole system and maintain it forever!
 
-** Alternatives
+In addition to solving my own needs, I hope that this powerful yet portable
+Simples system is useful to you and might also inspire you in your own creative
+endeavors!
+
+*** Posix-Compatible Shells vs. Other Shells
 
 =ksh= seems to be the best /Posix/-compliant shell for scripting. =zsh= has the
 most features for interactive use and is a close second in scripting power.
@@ -125,21 +151,44 @@ Using =bash= from =emacs= provides an especially nice interactive experience.
 =emacs= is also a nice platform for developing scripts and programs in much
 nicer languages. Frankly, writing any but the most trivial scripts in any of
 these shell languages is probably a bad idea!
-   
-** Future Plans
+
+There are a variety of Non-Posix Shells which are in some ways better for
+- Interactive usage, e.g. =emacs= [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell][eshell]]
+- Writing scripts, e.g. [[https://scsh.net/][Scsh]]
+- All-around usage, e.g. [[https://www.nushell.sh/][nushell]], [[https://www.maketecheasier.com/what-is-rc-shell-linux/][Plan9's Rc]] or [[https://docs.microsoft.com/en-us/powershell/][Microsoft's Powershell]]
+
+If you choose to use these or other Non-Posix Shells you'll still probably have
+to use Posix-Shells for some purposes, but you won't have as much need to learn
+the advanced features of the Posix-Shells.
+
+*** Future Plans
 
 I am keeping my eye on many new developments in programmable user interfaces and
-nice scripting languages. One of the most productive scripting and GUI languages
-is =tcl=. Some of the newer /Lisps/ are getting better at scripting and have
-spawned shell projects, e.g. =scheme= with =scsh=, =racket= with =rash=, =guile=
-with =gash= and =clojure= with =closh=. It's not really necessary to use the
-same tool for issuing interactive commands and writing scripts.
+nice scripting languages.
+
+One of the least known yet most productive scripting and GUI languages is [[https://www.tcl.tk][tcl]]
+whose native GUI toolkit [[https://wiki.tcl-lang.org/page/Ttk][ttk]] has been adopted by more popular scripting
+languages, including Python, Ruby and Perl. If you use any of those languages,
+check out [[https://tkdocs.com][tkinter]]!
+
+Some of the newer /Lisps/ are great for scripting and have spawned shell
+projects, e.g.
+- [[https://en.wikipedia.org/wiki/Scheme_(programming_language)][scheme]] [[https://scsh.net][scsh]]
+- [[https://racket-lang.org][racket]] [[https://docs.racket-lang.org/rash][rash]]
+- [[https://www.gnu.org/software/guile][guile]] [[https://savannah.nongnu.org/projects/gash][gash]]
+- [[https://clojure.org][clojure]] [[https://github.com/dundalek/closh][closh]]
+Alas, /none/ of these shells support =sh= syntax and semantics and therefore
+none of them can replace =sh= in all of the Posix environments which expect
+such. Sigh!
+
+It's not really necessary to use the same tool for issuing interactive commands
+and writing scripts.
 
 I consider the =pdksh= versions of the /Simples System/ to be obsolete. I have
 no plans of porting the /Simples System/ to =zsh=. I have no interest in new
 non-POSIX-compliant shells - sorry tcsh and fish! I would have abandoned the
-=sh= port if it weren't for certain conservative elements who insist on building
-it in to key tools.
+=sh= port if it weren't for the regression of X Display and Session Managers now
+ignoring a user's specified shell in favor of =sh=.
 
 I have no ambitious plans for the /Simples System/. I will try to keep the =sh=
 and =bash= Version of the /Simples System/ safe from /software rot/ and
@@ -154,3 +203,98 @@ simple, compatible with the values of FLOSS, i.e. the Freedom of /Users/ to have
 their systems behave the way they wish should outweigh the Freedom of
 /Developers/ to have their creations operate as they imagine on other people's
 systems!
+
+** GLOSSARY
+
+Posix refers to a number of Operating Systems which follow much of the
+architecture of the Unix Timesharing System, including using /Command Shells/
+for configuration, customization and automation.
+
+A Posix Operating System Consists Of
+- A /UserLand/ running on top of a /Kernel/
+- The /Userland/
+      - consisting of libraries, services, utilities and applications
+      - which provide the functionality observed by /users/
+- Either a traditional /Monolithic Kernel/
+      - A large and sophisticated software system
+      - Running in a protected memory space
+      - Interfaces with the physical Hardware of the machine
+      - Provides a convenient and portable platform for the Userland
+      - Not directly accessible to users
+- Or a /Micro-Kernel/ with associated service daemons
+      - Provides similar functionality to a Monolithic Kernel
+      - Only a small part, the /Micro-Kernel/ runs in a protected memory space
+      - Possibly more secure and flexible
+      - Possibly less performant and currently less popular
+
+Posix-Compatible Operating Systems including
+- /Unix/
+      - Developed at AT&T Bell Laboratories in the early 1970s
+      - Required expensive licensing until after Gnu/Linux was developed
+      - Not used much any more
+- the various /BSD variants/
+      - Based on the Berkeley Software Distribution of the 1980s
+      - Required expensive licensing until after Gnu/Linux was developed
+      - Now consisting of many Open-Source projects
+      - Usually includes many non-BSD additions
+      - including FreeBSD, NetBSD, OpenBSD, Apple's MacOS and IOS
+- [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan9]] and [[https://en.wikipedia.org/wiki/Inferno_(operating_system)][Inferno]]
+      - Developed at AT&T Bell Laboratories in the 1980s and 1990s
+      - Awesome architectural innovations
+      - Required expensive licensing until after Gnu/Linux was developed
+      - Now open source, yet not much adopted
+      - Some /Plan9/ components can be [[https://en.wikipedia.org/wiki/Plan_9_from_User_Space][added onto other Operating Systems]]
+            - Others are too tied to the /Plan9/ and /Inferno/ architectures
+- [[https://www.gnu.org/gnu/linux-and-gnu.html][Gnu/Linux]]
+      - Started with the [[https://www.gnu.org/][Gnu Project]] of the [[https://www.fsf.org/][Free Software Foundation]]
+      - Usually includes many non-Gnu additions
+      - Runs on top of the /Linux Kernel/
+      - Wildly popular, from portable devices to supercomputers
+- [[https://www.gnu.org/software/hurd/][Gnu/Hurd]]
+      - the GNU Userland
+      - On top of the Hurd services running on a Micro-Kernel
+      - Potentially more advanced, yet not yet mature
+There are many [[https://distrowatch.com/][Free Operating System Distributions]]!
+
+/Posix-Compatible Shells/ include
+- =sh=, =ash=, =dash=, =ksh=, =bash=, =zsh=
+      - The /Gnu/Linux standard shell is =bash=
+      - BSD users use various Posix-Compatible Shells
+            - Originally BSD used the Non-Posix [[https://en.wikipedia.org/wiki/C_shell][csh aka the C-Shell]]
+      - Apple has recently switched from (an ancient) =bash= to =zsh=
+- Microsoft provides =bash= for Posix Compatibility
+      - Along with their new [[https://docs.microsoft.com/en-us/powershell/][Powershell]]
+      - And their old /Command Prompt/ shell
+
+** DEVELOPMENT NOTES
+
+Right now we're in transition
+- Even more than usual!
+
+Urgent Needs
+- Finish the transition!
+- Fix install-library and install-dotfiles to do what is required
+      - And to test things!
+
+We're getting rid of the various "local" scripts in favor of
+  - =sh= compatible scripts under =~/.profile.d/=
+        - sourced by the standard =~/.profile script=
+  - =bash= compatible scripts under =~/.bash_profile.d/=
+        - sourced by the standard =~/.bash_profile script=
+
+We're moving a lot of functionality from =bash= to =sh=
+- where efficiency is similar
+- the =bash= scripts source the =sh= scripts
+      - and maybe export the functions
+
+The Bash-Simples code is staying
+- There's probably no need for =sh= simples
+- But it would be nice to restore compatibility!
+- And to remove anything no longer needed
+      - such as path setting, which is now purely =sh= code
+
+Where users are able to get their Display Managers and Session Managers to use =bash= 
+- Everything should work just the same
+- But with better performance
+      - Less startup delay (not having to source as much)
+      - Shell functions exported
