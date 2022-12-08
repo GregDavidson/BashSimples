@@ -21,7 +21,7 @@ simples_header='$Header: simples.sh,v 1.3 2008/03/08 03:44:33 greg Exp greg $'
 
 # Assumptions about shell packages (change and uncomment if needed):
 #	simples_sh_suffix='.sh'
-#	simples_sh_path="$HOME/Lib/Sh"
+#	simples_sh_path="$HOME/Lib/Bash-Sh/Simples-Sh"
 
 # Requires the following shell builtins:
 #	echo
@@ -322,7 +322,7 @@ simple_provided() { in_simple_list "$simples_provided" "$1"; }
 # ** Sourcing Simples Scripts
 
 simple_set_default simples_sh_suffix '.sh'
-simple_set_default simples_sh_path "$HOME/Lib/Sh"
+simple_set_default simples_sh_path "$HOME/Lib/Bash/Simples-Sh"
 
 # simple_source SIMPLE_FILENAME...
 # sources (i.e. includes, consults, performs the commands of)
