@@ -39,7 +39,7 @@ following/ these provided scripts:
 #+end_src
 
 ** Simples System
-   
+
 Use the Simples System which is right for you:
 - /Simples-Sh/ ::	a system to manage =sh= /extension modules/
       - Will work for any /Posix-Compatible Shell/
@@ -69,7 +69,7 @@ Notes:
 I aim to make computer systems
 - more powerful for *power users*
 - with minimal added /or even less/ complexity
- 
+
 Let's extend the basic functionality of
 computer systems and subsystems so that they are
 - easier to understand than before
@@ -80,7 +80,7 @@ This is all a part of [[https://github.com/GregDavidson/computing-magic#readme][
 
 - Power User :: Someone who empowers themselves in interesting and creative
   projects by delegating undesirable non-creative work to computers.
-  
+
 ** STORY
 
 The Simples System
@@ -293,7 +293,7 @@ The Bash-Simples code is staying
 - And to remove anything no longer needed
       - such as path setting, which is now purely =sh= code
 
-Where users are able to get their Display Managers and Session Managers to use =bash= 
+Where users are able to get their Display Managers and Session Managers to use =bash=
 - Everything should work just the same
 - But with better performance
       - Less startup delay (not having to source as much)
