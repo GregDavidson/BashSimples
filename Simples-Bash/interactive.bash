@@ -165,4 +165,4 @@ alias mv="mv $mv_cp_opt"
 alias cp="cp $mv_cp_opt"
 alias ls='ls -B --color=auto'
 
-orig() { for f ; do mv $f ${f}.orig && cp ${f}.orig $f ; done ; }
+orig() { for f ; do mv "$f" "${f}.orig" && cp "${f}.orig" "$f" ; done ; }
