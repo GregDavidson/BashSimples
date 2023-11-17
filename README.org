@@ -76,7 +76,7 @@ computer systems and subsystems so that they are
 - more powerful than before
 - and easier to further extend if necessary
 
-This is all a part of [[https://github.com/GregDavidson/computing-magic][Computing Magic]]!
+This is all a part of [[https://github.com/GregDavidson/computing-magic#readme][Computing Magic]]!
 
 - Power User :: Someone who empowers themselves in interesting and creative
   projects by delegating undesirable non-creative work to computers.
