@@ -1,10 +1,12 @@
 #!/bin/sh
 # ~/.profile - login preferences for sh compatible shells
 # Directly Sourced by:
-# - Many GUI display managers and session managers use /bin/sh
-#   which is often a link to dash, bash or another Posix Shell
+# - Many GUI display managers and session managers
 #   - e.g. light-dm and mate-session
-# - ~/.bash_profile
+#   which use /bin/sh which is usually a link to
+#   dash, bash or another Posix Shell
+#   which emulate the Bourne Shell when called as sh
+# - ~/.bash_profile when you login using bash
 
 export HOME_PROFILE=begun  # protect against infinite sourcing loops!
 
@@ -18,11 +20,28 @@ export HOME_PROFILE=begun  # protect against infinite sourcing loops!
 
 # ensure ~/.bash_profile sourced if we're really running bash
 # this will be called near the end
+# TODO: for mac folks, it would be good to generalize this to
+# check if it's being run by zsh and if so, ensure that the
+# suitable zsh login script is sourced!!!
 ensure_bash_profile() {
+    local this='.profile->ensure_bash_profile'
     local f="$HOME/.bash_profile"
-    [ -n "$BASH_VERSION" ] || return     # not running bash
+    local notice="$this notice: %s\n"
+    local proc_exe="/proc/$$/exe"
+    [ -n "$BASH_VERSION" ] || {
+        printf "$notice" "No variable BASH_VERSION"
+        if [ -f "$proc_exe" ]; then
+            printf "$notice" "this shell's $(realpath "$proc_exe") exiting"
+        else
+            printf "$notice" "this shell's not bash, exiting"
+        fi
+        return
+    } >&2
     ! [ -v HOME_BASH_PROFILE ] || return # already sourced
-    [ -f "$f" ] || return                # it doesn't exist
+    [ -f "$f" ] || {
+        printf '%s warning: %s\n' "$this" "no script file %f"
+        return
+    } >&2
     . "$f"                               # source it now!
 }
 
@@ -30,19 +49,22 @@ ensure_bash_profile() {
 # then source some local scripts to customize things
 # to the user's tastes
 
-# Our configuration could "inherit" from a "super" one
-# Local scripts could be under $super or under $HOME
-# THIS PARAGRAPH GOT DAMAGED - IS THIS WHAT IT SHOULD BE?!!!
-sh_local_dir='.profile.d'
+# Our account might "inherit" configurations from a "super" one
+# - fancy extensions would go in the "super" account
+# Therefore scripts might be under $super or under $HOME
+sh_profiles_dir='.profile.d'
 
 # Intended for use by if_src_super
 # Try sourcing "$1"
 # If it exists and we succeed, add it to $if_src_list
 if_src_one() {
-  [ -f "$1" -a -r "$1" ] || return 1
-  . "$1"
-  if_src_list="${if_src_list:+$if_src_list:}$1"
-  return 0
+    local this='.profile->if_src_one'
+    unset if_src_status
+    [ -f "$1" -a -r "$1" ] || return 1 # signal failure silently
+    . "$1"
+    if_src_status=$?            # status from sourced script
+    if_src_list="${if_src_list:+$if_src_list:}$1"
+    return "$if_src_status"
 }
 
 # Intended for use by if_src
@@ -54,9 +76,14 @@ if_src_super() {
   case "$1" in
     /*) if_src_one "$1" ; return $? ;;
   esac
-	[ -d "$super" ] && if_src_one "$super/$1"
+  unset if_src_home_status if_src_super_status
+	! [ -d "$super" ] || if_src_one "$super/$1"
   if_src_super_status="$?"
-  if_src_one "$HOME/$1" || return $if_src_super_status
+  ! [ -f "$HOME/$1" ] || {
+      if_src_one "$HOME/$1"
+      if_src_home_status="$?"
+  }
+  return ${if_src_home_status:-${if_src_super_status:-1}}
 }
 
 # if_src SCRIPT...
@@ -76,46 +103,41 @@ if_src() {
 # binaries compiled for specific architectures!
 if type -p arch >/dev/null      # do we have the arch program?
 then arch=`arch`
-elif type -p uname >/dev/null   # or do we have the uname program?
-then arch=`uname -m`            # hope it has the -m option!
-else arch='any'                 # really the default when no suffix anyway
+else type -p uname >/dev/null || # or do we have the uname program?
+arch=`uname -m` ||               # or hope it has the -m option!
+arch='any'                       # or the default when no suffix
 fi
 
-# path_list [-TEST] EXISTING_PATH MAYBE_NEW_ITEM...
+# path_list [ -a ] [ -TEST ] EXISTING_PATH MAYBE_NEW_ITEM...
 # Return a colon-separated list of items
 # if they pass [ -TEST ] and are not already present.
 # man test | grep '^ *-. ' | grep FILE | sort
 path_list() {
-# >&2 echo "path_list $@"
-# set -xv
-    path_list_test='-n'        # any non-empty value will do
-    path_list_append='false'
+    path_list_test='-n'        # bash: help test
+    path_list_append='false'   # new items go in front
     path_list_delim=':'
-    while case "$1" in
-	-[bcdefgGhkLOprsSuwx]) path_list_test="$1" ;;
-	-a) path_list_append='true' ;;
-	-?) >&2 echo "path_list warning: unknown option $1" ;;
-	*) break ;;
-    esac; do
-# >&2 echo "path_list: got option $1"
-shift; done
+    while [ $# -gt 0 ]; do
+          case "$1" in
+	            -a) path_list_append='true' ;; # new items go in back
+	            -[bcdefgGhkLOprsSuwx]) path_list_test="$1" ;;
+	            -?) >&2 echo "path_list warning: unknown option $1" ;;
+	            *) break ;;
+          esac
+          shift
+    done
     path_list_items="$1"; shift
 # >&2 echo "path_list: Initial path_list_items=$path_list_items"
     for path_list_item; do
-        [ "$path_list_test" "$path_list_item" ] &&
+        ! [ "$path_list_test" "$path_list_item" ] ||
             case ":$path_list_items:" in
                 *":$path_list_item:"*) ;; 
-                *)
-if $path_list_append
-then path_list_items="$path_list_items:$path_list_item"
-     # >&2 echo "path_list: appending $path_list_item"
-else path_list_items="$path_list_item:$path_list_items"
-     # >&2 echo "path_list: prepending $path_list_item"
-fi ;;
+                *) if $path_list_append
+                   then path_list_items="$path_list_items:$path_list_item"
+                   else path_list_items="$path_list_item:$path_list_items"
+                   fi ;;
             esac
     done
-    echo "$path_list_items"
-# set +xv
+    printf "%s\n" "$path_list_items"
 }
 
 path_add () { PATH=$(path_list -d "$PATH" "$@"); export PATH ; }
@@ -125,9 +147,9 @@ path_add () { PATH=$(path_list -d "$PATH" "$@"); export PATH ; }
 # have subdirectories which need to be added to appropriate path variables
 # before we can use them.
 collection_add() {
-    for ddd; do
-        [ -d "$ddd" ] && for dd in "$ddd"/*; do
-            [ -d "$dd" ] && for d in "$dd"/*; do
+    for ddd; do                 # e.g. /usr/local/SW for local software packages
+        [ -d "$ddd" ] && for dd in "$ddd"/*; do # e.g. /usr/local/SW/pgsql
+            [ -d "$dd" ] && for d in "$dd"/*; do # e.g. /usr/local/SW/pgsql/bin
                 [ -d "$d" ] && case "$d" in
                     */[Bb]in|*/[Bb]in-"$arch") PATH=$(path_list "$PATH" "$d") ;;
                     */[Ii]nfo) INFOPATH=$(path_list "$INFOPATH" "$d") ;;
@@ -135,7 +157,6 @@ collection_add() {
                     */Tcl) TCLLIBPATH=$(path_list "$TCLLIBPATH" "$d") ;;
                     */JVM) CLASSPATH=$(path_list -f "$CLASSPATH" $(find "$d/JVM" -name '*.jar' -print))
                     # Do you need to manage other kinds of paths?
-
                     # Run: env | cut -d= -f1 | grep PATH
                 esac
             done
@@ -143,26 +164,26 @@ collection_add() {
     done
 }
 
-# OK, now let's do what is desired locally
+# Run any other user account profile scripts
 if [ -n "$super" ]; then
-    if_src "$sh_local" $super/$sh_local_dir/* $HOME/$sh_local_dir/*
+    if_src "$sh_local" $super/$sh_profiles_dir/* $HOME/$sh_profiles_dir/*
 else
-    if_src "$sh_local" $HOME/$sh_local_dir/*
+    if_src "$sh_local" $HOME/$sh_profiles_dir/*
 fi
 
 # Construction notes:
-# - Only source $HOME/.sh.d/* scripts
-# - Don't incrementally extend the original path
-# - Only use the original path for avoiding duplicates
-# - Therefore, just append the components
-# - The caller can then add the new components
-#   - At the front or back -- trivial
-#   - At an intermediate point -- not difficult
-# - Provide convenience functions for
-#   - splicing in between the home and system directories
-#   - splicing after a particular component
-# - There's a lot of things under ~/.home-inits which need upgrading!
+# - Scripts can easily add new path components
+#   - At the front or back -- DONE
+#   - At an intermediate point -- TODO
+#     - splicing in between the home and system directories
+#     - splicing after a particular component
+# - Check everything under ~/.home-inits -- TODO
+
+# Put this where it belongs, uncommented!!
+# collection_add ~/SW /usr/local/SW
 
 ensure_bash_profile
 
 export HOME_PROFILE=done
+# kludge PATH
+. $HOME/path-update
