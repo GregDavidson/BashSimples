@@ -182,19 +182,9 @@ simple_var_trace() {
     declare -gA simple_var_trace
     local v
     case $1 in
-        (--on) for v in "${@:2}"; do let {simple_var_trace["$v"]}=1; done ;;
+        (--on) for v in "${@:2}"; do let simple_var_trace["$v"]=0; done ;;
         (--off) for v in "${@:2}"; do unset ${simple_var_trace["$v"]}; done ;;
-        (*) return $(( ${simple_var_trace["$1"]-0}  )) ;;
-    esac
-}
-
-simple_var_trace() {
-    declare -gA simple_var_trace
-    local v
-    case $1 in
-        (--on) for v in "${@:2}"; do let {simple_var_trace["$v"]}=1; done ;;
-        (--off) for v in "${@:2}"; do unset ${simple_var_trace["$v"]}; done ;;
-        (*) return $(( ${simple_var_trace["$1"]-0}  )) ;;
+        (*) return $(( ${simple_var_trace["$1"]-1}  )) ;;
     esac
 }
 

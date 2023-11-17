@@ -5,7 +5,7 @@
 # http://creativecommons.org/licenses/by/4.0.
 
 [ -n "${simples_provided-}" ] || # is simples package already loaded?
-  . "${simples_bash-$HOME/Lib/Bash/Simples/simples.bash}" || # try loading it
+  . "${simples_bash-$HOME/Lib/Shell/Simples-Bash/simples.bash}" || # try loading it
   (echo "$0 error: Can't load simples, goodbye!" >&2; exit 1)
 
 simple_require program msg_n_exit
@@ -22,9 +22,9 @@ msg_exit_format fire	3 'User %s is on fire!\n'
 msg_format extra_args	'%14s\t%s\n'
 msg_format extra_arg	'%14d\t%s\n'
 
-program_flag	f	friendly	false true	establish friendly
-program_option	h	heat	low	set level of heat '(low high)'
-program_arg		user			the poor sucker
+program_flag f friendly false true establish friendliness
+program_option h heat low set level of heat '(low high)'
+program_arg user the poor sucker
 
 program_note I hope you understand and appreciate the nice things \
 	which these simples packages are taking care of for you.

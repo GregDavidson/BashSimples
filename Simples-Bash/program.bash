@@ -17,7 +17,7 @@ export PATH
 case "${simples_provided-}" in
     simples) : ;;           # simples package already loaded
     simples\ *) : ;;           # simples package already loaded
-    *) . "${simples_bash-$HOME/Lib/Bash/Simples/simples.bash}" ||
+    *) . "${simples_bash-$HOME/Lib/Shell/Simples-Bash/simples.bash}" ||
         (echo "$0 error: Cannot load simples.bash, goodbye!" >&2; exit 1) ;;
 esac
 
@@ -32,7 +32,7 @@ simple_require msg_n_exit
 
 # two external scripts for formatting help messages
 
-: "${pgm_helper_bin:=$HOME/Lib/Bash/Simples/Bin}"
+: "${pgm_helper_bin:=$HOME/Lib/Shell/Simples-Bash/Bin}"
 
 for pgm_helper in notes table; do
     x_="program_format_$pgm_helper"

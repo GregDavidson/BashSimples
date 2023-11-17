@@ -1,7 +1,7 @@
 #!/bin/sh
 
 [ -n "${simples_provided-}" ] || # is simples package already loaded?
-  . "${simples_sh-$HOME/Lib/Sh/simples.sh}" || # try loading it
+  . "${simples_sh-$HOME/Lib/Shell/Simples-Sh/simples.sh}" || # try loading it
   (echo "$0 error: Can't load simples, goodbye!" >&2; exit 1)
 
 simple_require program msg_n_exit incr_expr

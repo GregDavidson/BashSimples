@@ -6,7 +6,7 @@ program_test_header='$Header: /Home/greg/Lib/Bash/Bin/RCS/program_test.bash,v 1.
 # Creative Commons Attribution 4.0 International License
 # http://creativecommons.org/licenses/by/4.0.
 
-. "${simples_bash:-$HOME/Lib/Bash/Simples/simples.bash}" ||
+. "${simples_bash:-$HOME/Lib/Shell/Simples-Bash/simples.bash}" ||
   ( >&2 echo "$0: Cannot source simples package!" ; exit 1 )
 
 simple_require test_expect
