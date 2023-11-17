@@ -23,14 +23,17 @@
 
 export HOME_BASH_PROFILE=begun  # protect against infinite sourcing loops!
 
-# ensure guard-variable protected profile-script is sourced
+# ensure guard-variable-protected profile-script is sourced
 # ensure_profile guard-variable script-path
 ensure_profile() {
     local this='.bash_profile->ensure_profile'
     local -n v="$1"             # alias the guard variable
     local f="$2"                # the script file
-    [ -f "$f" ] || return       # doesn't exist
-    grep -qs "\<$1\>" "$f" || { # doesn't use guard-variable!
+    [ -f "$f" ] || {
+        >&2 printf '%s warning: %s\n' "$this" "no script file %f"
+        return
+    }
+    grep -qs "\<$1\>" "$f" || {
         >&2 printf '%s warning: %s\n' "$this" "no guard %1 in script %2"
         return
     }
