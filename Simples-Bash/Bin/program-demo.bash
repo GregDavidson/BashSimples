@@ -27,17 +27,9 @@ program_option h heat low set level of heat '(low high)'
 program_arg user the poor sucker
 
 program_note I hope you understand and appreciate the nice things \
-	which these simples packages are taking care of for you.
+	which these simples packages are taking care of for you!
 
-program_note I explicitly loaded the simples package and then used it \
-	to require three other packages along with anything they \
-        might require.
-
-program_note  None of these things are really hard to do, \
-	but they are tedious enough to do well that too often \
-	we just will not bother, or worse, we will do them in a slapdash fashion.
-
-program_note This is also an example of a declarative interface.
+program_note This is an example of a declarative interface.
 
 program_note Try setting the heat to high.
 
@@ -48,8 +40,8 @@ program_process_options "$@" ; shift $program_option_count
 
 user=$1 ; shift
 
-# simple_bashow 'Options:' friendly heat
-# simple_bashow 'Required arguments:' user
+# simple_bash 'Options:' friendly heat
+# simple_bash 'Required arguments:' user
 
 if [ $# -gt 0 ]; then
     msg_out extra_args 'NUMBER' 'EXTRA ARGUMENT'
